@@ -29,12 +29,12 @@ function New-TodoObject
 	$defaultProps = @{
 		"Canonical" 	= "";		# [string] the todo text as read from the todo file
 		"DoneDate" 		= "";		# [string] date the todo was completed in yyyy-MM-dd format
-		"CreatedDate" 	= Get-Date -Format "yyyy-MM-dd";		# [string] date the todo was created in yyyy-MM-dd format
+		"CreatedDate" 	= "";		# [string] date the todo was created in yyyy-MM-dd format
 		"Priority"		= "";		# [string] todo priority (A - Z)
 		"Task"			= ""; 		# [string] the todo text 
 		"Context"		= "";		# [string[]] the todo context (such as @computer)
 		"Project"		= "";		# [string[]] the project the todo is assigned to (ie. +housebuild)
-		"Due"			= "";		# [string] The due date of the todo (uses due:) in the format yyyy-MM-dd
+		"DueDate"		= "";		# [string] The due date of the todo (uses due:) in the format yyyy-MM-dd
   		"Threshold"		= "";		# [string] the threshold / start date of a todo (uses t:) in the format yyyy-MM-dd [for future implementation]
   		"Recurrence"	= "";		# [string]recurring todos (uses rec:) [for future implementation]
   		"Hidden"		= "";		# dummy todos that are hidden from view (uses h:) [for future implementation]
@@ -68,6 +68,14 @@ function New-TodoObject
             }
         }
     }#>
+
+    Write-Verbose "Now setting some defaults."
+    if ($todoObj.CreatedDate -eq "")
+    {
+        Write-Verbose "Setting default CreatedDate."
+        $todoObj.CreatedDate = Get-Date -Format "yyyy-MM-dd"
+        Write-Verbose "Default CreatedDate set as $($todoObj.CreatedDate)"
+    }
 
     $todoObj
 }
