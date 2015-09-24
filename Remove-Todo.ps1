@@ -3,7 +3,7 @@
     .NOTES 
         Additional Notes, eg 
         Author		: Paul Broadwith (paul@pauby.com)
-	    History		: 1.0 - 22/09/15 - Initial version
+	    History		: 1.0 - 24/09/15 - Initial version
         Appears in -full
     .LINK 
         A hyper link, eg 
@@ -28,24 +28,32 @@
 		Display a date range
 #>
 
-function Import-Todo
+function Remove-Todo
 {
     [CmdletBinding()]
     Param (
-        [ValidateScript( { Test-Path $_ } )]
+        [Parameter(Mandatory)]
+        [ValidateRange(1,65535)]
+        [int[]]$LineNums,
+
         [ValidateNotNullOrEmpty()]
         [string]$Path = $poshTodoConfig['todoTaskFile']
     )
 
-    Write-Verbose "Checking todo file $Path exists."
-    if (-not (Test-Path $Path))
+    Write-Verbose "Importing all todos from $Path"
+    $sourceTodos = Import-Todo -Path $Path
+    if ($sourceTodos -eq $null)
     {
-        Write-Warning "Cannot find $Path"
+        Write-Verbose "Could not read todos from $Path"
         Exit
     }
 
-    Write-Verbose "Retrieving contents of todo file $Path."
-    $todos = Get-Content -Path $Path -Encoding UTF8 -Verbose:$VerbosePreference
+    Write-Verbose "Read $($sourceTodos.Count) todos."
+    Write-Verbose "Creating a new todo list skipping over the one to be removed."
+    $destTodos = $sourceTodos | where-object { $LineNums -notcontains $_.Line }
+    Write-Verbose "After removing the todos we now have $($destTodos.Count)."
 
-    $todos | ConvertTo-TodoObject -Verbose:$VerbosePreference
+    Write-Verbose "New todo list is now $($destTodos.Count) lines long (original list was $($sourceTodos.Count) lines long)."
+    
+    Export-Todo -TodoObject $destTodos -Path $Path -Verbose:$VerbosePreference
 }
