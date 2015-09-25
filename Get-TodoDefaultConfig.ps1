@@ -27,7 +27,15 @@ function Get-TodoDefaultConfig
 #		"TodoTaskFile" 	    = $env:TODO_TASK;
 #		"TodoDoneFile" 	    = $env:TODO_DONE;
 		'UseListsAndTags' 	= $false;
-		
+        'InfoMsgsColour'    = 'DarkCyan';
+
+        # Archiving
+        'AutoArchive'       = $true;
+
+        # Backups
+        'BackupPath'        = "c:\users\paul\sync\apps-all\todo\backups\";
+        'BackupDaysToKeep'  = 7;
+        		
 		# Priorities
 #		'PriorityMaximum' 	= 'D';		# last priority to use - if any todo has a lower priority it will be set to this
 		

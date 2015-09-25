@@ -33,53 +33,98 @@ function Export-Todo
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory, ParameterSetName="Objects")]
-        [ValidateNotNullOrEmpty()]
+        [AllowEmptyCollection()]
         [object[]]$TodoObject,
 
         [Parameter(Mandatory, ParameterSetName="Strings")]
+        [AllowEmptyCollection()]
         [string[]]$TodoString,
 
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Path,
 
+        [Parameter(Mandatory)]
+        [string]$BackupPath,
+
+        [Parameter(Mandatory)]
+        [int]$DaysToKeep,
+
+        [switch]$Force, #forces overwriting readonly files
+
         [switch]$Append
     )
 
+    Write-Verbose "Taking a backup of the todo file before we export."
+    Backup-Todo -Path $Path -BackupPath $BackupPath -DaysToKeep $DaysToKeep -Force:$($Force.IsPresent)
+
     if (-not $Append)
     {
-        Write-Verbose "Deleting todo file $Path"
-        Remove-Item -Path $Path -Force
-        Write-Verbose "File $Path deleted."
-    }
-
-    Write-Verbose "Appending todo to the todo file at $Path"
-
-    $toBeWritten = @()
-    if ($TodoObject)
-    {
-        Write-Verbose "We have todo objects to export."
-
-        foreach ($todo in $TodoObject)
+        Write-Verbose "Exporting all todos to the todo file at $Path so need to clear it first."
+        Clear-Content -Path $Path -Force:$($Force.IsPresent) -ErrorAction SilentlyContinue
+        if ($?)
         {
-            Write-Verbose "Converting todo object to a string so we can write it to the todo file."
-            $toBeWritten += ConvertTo-TodoString $todo
+            Write-Verbose "File $Path cleared."
+        }
+        else
+        {
+            Write-Warning "Could not clear contents of todo file $Path prior to writing new todos.`nExiting."
+            Exit
         }
     }
     else
     {
-        Write-Verbose "We have todo strings to export."
-        $toBeWritten = $TodoString
+        Write-Verbose "Appending todo(s) to the todo file at $Path"
     }
 
-    try
+    $toBeWritten = @() # will hold the todos to be written after converting the objects to string or from the strings passed
+    if ($TodoObject)
     {
-        $toBeWritten | Add-Content -Path $Path -Encoding UTF8 -Force -ErrorAction SilentlyContinue
+        if (($TodoObject -ne $null) -and ($TodoObject.Count -gt 0))
+        {
+            Write-Verbose "We have $($TodoObject.Count) todo objects to export."
+            foreach ($todo in $TodoObject)
+            {
+                Write-Verbose "Converting todo object to a string so we can write it to the todo file."
+                $toBeWritten += ConvertTo-TodoString $todo
+            }
+        }
+        else
+        {
+            Write-Verbose "We have 0 todo objects to export."
+        }
     }
-    catch
+    else
     {
-        Write-Warning "Could not write new todo to the todo file at $Path."
-        Exit
+        if (($TodoString -ne $null) -and ($TodoString.Count -gt 0))
+        {
+            Write-Verbose "We have $($TodoString.Count) todo strings to export."
+            $toBeWritten = @($TodoString)
+        }
+        else
+        {
+            Write-Verbose "We have 0 todo strings to export."
+        }
+    }
+
+    if ($toBeWritten.Count -gt 0)
+    {
+
+        Write-Verbose "Writing the todos to the todo file at $Path"
+        $toBeWritten | Add-Content -Path $Path -Encoding UTF8 -Force:$($Force.IsPresent) -ErrorAction SilentlyContinue
+        if ($?)
+        {
+            Write-Verbose "Todos written"
+        }
+        else
+        {
+            Write-Warning "Could not write todo(s) to the todo file at $Path."
+            Exit
+        }
+    }
+    else
+    {
+        Write-Verbose "No todos to be written."
     }
 }
 
