@@ -33,7 +33,7 @@ function Format-Todo
 	[CmdletBinding()]
 	Param (
 			[Parameter(Mandatory,Position=0)]
-			[ValidateNotNullOrEmpty()]
+			[AllowEmptyCollection()]
 			[object[]]$Todo,
 			
 			[ValidateNotNullOrEmpty()]
@@ -49,12 +49,4 @@ function Format-Todo
 	@{ n='Context       '; e={ $_.Context -join "`n" }; Width=15; },
 	@{ n='Project       '; e={ $_.Project -join "`n" }; Width=15; },
 	@{ n='Task               '; e={ $_.Task } } | Out-String -Stream | Format-Colour
-
-    $todosCompleted = @(($Todo | where { $_.DoneDate -ne "" })).Count
-    if ($todosCompleted -gt 0)
-    {
-        Write-Host "* Todo file needs archived - $todosCompleted completed todos found." -ForegroundColor Magenta
-    }
-
-    Write-Host 
 }

@@ -3,7 +3,7 @@
     .NOTES 
         Additional Notes, eg 
         Author		: Paul Broadwith (paul@pauby.com)
-	    History		: 1.0 - 24/09/15 - Initial version
+	    History		: 1.0 - 25/09/15 - Initial version
         Appears in -full
     .LINK 
         A hyper link, eg 
@@ -28,40 +28,30 @@
 		Display a date range
 #>
 
-function Remove-Todo
+function Write-TodoInformation
 {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory)]
-        [ValidateRange(1,65535)]
-        [int[]]$LineNums,
+        [AllowEmptyCollection()]
+        [object[]]$Todo,
 
         [ValidateNotNullOrEmpty()]
-        [string]$Path = $poshTodoConfig['todoTaskFile'],
-
-        [hashtable]$Config = $poshTodoConfig,
-
-        [switch]$Force
+        [hashtable]$Config = $poshTodoConfig
     )
 
-    Write-Verbose "Importing all todos from $Path"
-    $sourceTodos = Import-Todo -Path $Path
-    if ($sourceTodos -eq $null)
+    Write-Verbose "Counting completed todos."
+    $todosCompleted = @(($Todo | where { $_.DoneDate -ne "" })).Count
+    if ($todosCompleted -gt 0)
     {
-        Write-Verbose "Could not read todos from $Path or there were no todos to read."
-        Exit
-    }
+        $infoText = "* $todosCompleted completed todos found."
+        if ($Config.AutoArchive)
+        {
+            $infoText += " Completed todos will be automatically archived."
+        }
 
-    Write-Verbose "Read $($sourceTodos.Count) todos."
-    if ($sourceTodos.Count -gt 0)
-    {
-        Write-Verbose "Creating a new todo list skipping over the one to be removed."
-        $destTodos = @($sourceTodos | where-object { $LineNums -notcontains $_.Line })
-        Write-Verbose "New todo list is now $($destTodos.Count) lines long (original list was $($sourceTodos.Count) lines long)."
-        Export-Todo -TodoObject $destTodos -Path $Path -Force:$($Force.IsPresent) -BackupPath $Config['BackupPath'] -DaysToKeep $Config['BackupDaysToKeep'] -Verbose:$VerbosePreference
-    }
-    else
-    {
-        Write-Verbose "0 todos read so nothing to remove!"
+        Write-Host $infoText -ForegroundColor $Config.InfoMsgsColour
     }
 }
+
+

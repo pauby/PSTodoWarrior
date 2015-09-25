@@ -19,3 +19,8 @@ PoshTodo's configuration format is stored in Get-TodoDefaultConfig.ps1
 # TODO
 
 Nothing yet - not released version 1 yet! 
+
+# References
+
+* The [Todo.txt Format](https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format)
+* [SimpleTask](https://github.com/mpcjanssen/simpletask-android/blob/master/src/main/assets/listsandtags.en.md) - took the idea for some of the addons from here (recurring tasks, hidden tasks etc.)

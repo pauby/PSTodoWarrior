@@ -45,7 +45,16 @@ function Import-Todo
     }
 
     Write-Verbose "Retrieving contents of todo file $Path."
-    $todos = Get-Content -Path $Path -Encoding UTF8 -Verbose:$VerbosePreference
+    $todos = @(Get-Content -Path $Path -Encoding UTF8 -Verbose:$VerbosePreference)
 
-    $todos | ConvertTo-TodoObject -Verbose:$VerbosePreference
+    if ($todos.count -gt 0)
+    {
+        $output = @($todos | ConvertTo-TodoObject -Verbose:$VerbosePreference)
+    }
+    else
+    {
+        $output = @()
+    }
+
+    ,$output
 }
