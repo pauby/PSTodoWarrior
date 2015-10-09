@@ -1,28 +1,32 @@
 ﻿<# 
 .SYNOPSIS
-    Test the PoshTodo configuration data
+    Test the configuration data
 .DESCRIPTION
-    Test the PoshTodo configuration data for essential elements:
+    NOTE: This is not used at the moment!
+
+    Test the configuration data for essential elements:
 
         todoTaskFile
         todoDoneFile
     
     Does not check for optional elements.
-
-    TODO: Check that all priorities allowed (up to UseLastPriority) have a value
 .NOTES 
     File Name	: Test-TodoConfig.ps1  
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 14/09/15 - Initial version
+
+    TODO        : Need to expans this function to check for more.
 .PARAMETER Config
     The configuration object to test.
 .OUTPUTS
-    Boolean indicating if test passed or failed.
+    Whether the configuration is valid or not. Output type is [bool]
 .EXAMPLE
     Test-TodoConfig -Config $config
+
+    Tests the configuration $config for validity.
 #>
 
-function Confirm-TodoConfig
+function Test-TodoConfig
 {
     [CmdletBinding()]
     Param (
@@ -66,4 +70,3 @@ function Confirm-TodoConfig
 
     $testState
 }
-         
