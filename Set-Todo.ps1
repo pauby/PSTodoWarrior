@@ -44,35 +44,35 @@ function Set-Todo
         [ValidateNotNullOrEmpty()]
         [object[]]$TodoObject,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("dd")]
         [string]$DoneDate,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("cd")]
         [string]$CreatedDate,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("pri", "u")]
         [string]$Priority,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("t")]
         [string]$Task,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("c")]
         [string[]]$Context,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("p")]
         [string[]]$Project,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("due")]
         [string]$DueDate,
 
-        [Parameter(ValueFromPipelineByProperty=$true)]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Alias("a")]
         [string[]]$Addon
     )
