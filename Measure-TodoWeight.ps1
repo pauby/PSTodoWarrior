@@ -1,24 +1,22 @@
 <#
 .SYNOPSIS
-	Calculates the weight of a todo.
+	Short description. Appears in all basic, -detailed, -full, -examples
 .DESCRIPTION
-	Calculates the weight of a todo.
+	Longer description. Appears in basic, -full and -detailed
 .NOTES
 	File Name	: Measure-TodoWeight
 	Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 16/09/15 - Initial version
-                  1.1 - 07/10/15 - Complete rewrite of the weight calculations using TaskWarrior (http://taskwarrior.org/docs/urgency.html)
-                  1.2 - 09/10/15 - Simplified age calculation: if age is more than 0 age weight is added
 .LINK
-	https://github.com/pauby/
-.PARAMETER Todo
-	 The todo to calcaulte the weight of.
+	A hyperlink (https://github.com/pauby/). Appears in basic and -Full.
+.PARAMETER firstone
+	 Parameter description. Appears in -det, -full (with more info than in -det) and -Parameter (need to specify the parameter name)
+.INPUTS
+	Documentary text - Input type  [Universal.SolarSystem.Planetary.CommonSense]. Appears in -full
 .OUTPUTS
-    The weight of the todo. Output type [single]
+	Documentary Text, eg: Output type  [Universal.SolarSystem.Planetary.Wisdom]. Appears in -full
 .EXAMPLE
-	Measure-TodoWeight $todo
-
-    Measures the weight of $todo and outputs the calculated value.
+	First line is command. Other lines just text. As many as you need. Appears in -detailed and -full
 #>
 function Measure-TodoWeight
 {
@@ -26,86 +24,58 @@ function Measure-TodoWeight
     Param (
         [Parameter(Mandatory,Position=0)]
         [ValidateNotNullOrEmpty()]
-        [object]$Todo
+        [object]$Todo,
+        
+        [ValidateNotNullOrEmpty()]
+        [hashtable]$Config
     )
     
-    $Config = Get-TodoConfig
-    [single]$weight = $Config['WeightStart']
-    [single]$addWeight = 0
+    $weight = [single]$Config.WeightStart
 
-    # priority
+    # 1 - priority
     Write-Verbose "Weighting todo priority."
-    if (-not [string]::IsNullOrWhiteSpace($Todo.Priority))
+    if ($Todo.Priority -ne '')
     {
-        # we calculate the priority by taking 'WeightPriority' as the value for Priority A
-        # Priority B will be 1 less than A, C 2 less then etc.
-        # so we take the priority, convert it to ascii and substract it from the ASCII code
-        # for A and use that as the value to adjust the priority weight
-        $addWeight = ([byte][char]$Todo.Priority - [byte][char]"A")
-        if ($addWeight -le 0)
+        $addWeight = &$Config['WeightPriorityCalc'] $Config $Todo
+        $weight += $addweight
+        Write-Verbose "Todo priority is $($Todo.Priority) which has a weight of $addWeight - Total Weight: $weight"
+    }
+    
+    # 2 - todo age
+    Write-Verbose "Weighting todo age."
+    $addWeight += $Todo.Age * $Config['WeightAgeFactor']
+    $weight += $addweight
+    Write-Verbose "Todo age is $($Todo.Age) which has a weight of $addWeight - Total Weight: $weight"
+    
+    # 3 - todo due in
+    Write-Verbose "Weighting todo duein."
+    if ($Todo.DueIn -ne "")
+    { 
+        if ($Todo.DueIn -gt 0)
         {
-            $addWeight = $config['WeightPriority']
+            $addWeight += (10 / $Todo.DueIn) * $Config['WeightDueInFactor']
+        }
+        elseif ($Todo.DueIn -eq 0)
+        {
+            $addWeight += 2
         }
         else
         {
-            $addWeight = $config['WeightPriority'] - $addWeight
+            $addWeight += (-1 * $Todo.DueIn) * 3
         }
-        $weight += $addWeight
-        Write-Verbose "Todo priority is $($Todo.Priority) which has a weight of $addWeight - Total Weight: $weight"
-    }
-      
-    # todo due date
-    Write-Verbose "Weighting todo duein."
-    if (-not [string]::IsNullOrWhitespace($Todo.DueIn))
-    { 
-        $addWeight = $config['WeightDueDate'] - $Todo.DueIn
+
         $weight += $addWeight
         Write-Verbose "Todo due in is $($Todo.DueIn) which has a weight of $addWeight - Total Weight: $weight"
     }
-
-    # age
-    Write-Verbose "Weighting todo age."
-    if (-not [string]::IsNullOrWhiteSpace($Todo.Age))
-    {
-        if ($Todo.Age -gt 0)
-        {
-            $addWeight = $config['WeightAge']
-        }
-        else
-        {
-            $addWeight = 0
-        }
-
-        $weight += $addWeight
-        Write-Verbose "Todo age is $($Todo.Age) which has a weight of $addWeight - Total Weight: $weight"
-    }
     
-    # project / tags
-    Write-Verbose "Weighting tags."
-    if ($Todo.Project.Count -gt 0)
-    {
-        $addWeight = $config['WeightHasProject']
-        $weight += $addWeight
-        Write-Verbose "Todo has projects / tags which has a weight of $addWeight - Total Weight: $weight"
-
-        if ($Config.ContainsKey('WeightProject') -and $config['WeightProject'].Count -gt 0)
-        {
-            
-            [array]$foundProjects = $Todo.Project | where { $Config['WeightProject'].Keys -contains $_ }
-
-            foreach ($project in $foundProjects)
-            {
-                $addWeight = $config['WeightProject']["$project"]
-                $weight += $addweight
-                Write-Verbose "Found project / tag $project which has a weight of $addweight - Total weight: $weight"
-            }
-        }
-    }
-
     if ($weight -gt 99.99)
     {
         $weight = 99.99
     }
+#    else
+#    {
+#        $weight = [math]::Round($weight, 2)
+#    }
       
     $weight
 }
