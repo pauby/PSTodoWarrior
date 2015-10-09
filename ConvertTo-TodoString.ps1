@@ -1,83 +1,49 @@
-﻿<# .SYNOPSIS    Converts a todo object into a todo string.
-.DESCRIPTION    Converts a todo object into a todo string.
+﻿<# .SYNOPSIS    Displays a visual representation of a calendar.
+.DESCRIPTION    Displays a visual representation of a calendar. This function supports multiple months    and lets you highlight specific date ranges or days.
 .NOTES 
+    Additional Notes, eg 
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 23/09/15 - Initial version
+    Appears in -full
 .LINK 
-    http://www.github.com/pauby
-.PARAMETER DoneDate
-    The completion date of the todo.
-.PARAMETER CreatedDate
-    Created date for the todo. If this is omitted the current date will be used.
-.PARAMETER Priority
-    Priority of the todo.
-.PARAMETER Task
-    The task text of the todo.
-.PARAMETER Context
-    The context of the task.
-.PARAMETER Project
-    The project the todo belongs to.
-.PARAMETER DueDate
-    The due date of the todo.
-.PARAMETER Addon
-    The addon text for the todo.
+    A hyper link, eg 
+    http://www.pshscripts.blogspot.com 
+    Becomes: "RELATED LINKS"  
+    Appears in basic and -Full 
+.PARAMETER Start    The first month to display.
+.PARAMETER HighlightDay    Specific days (numbered) to highlight. Used for date ranges like (25..31).    Date ranges are specified by the Windows PowerShell range syntax. These dates are    enclosed in square brackets.
 .INPUTS
-    Input type [PSObject]
+	Documentary text, eg: 
+	Input type  [Universal.SolarSystem.Planetary.CommonSense] 
+	Appears in -full 
 .OUTPUTS
-    Output type [string].EXAMPLE    $todoObject | ConvertTo-TodoString
+	Documentary Text, eg: 
+	Output type  [Universal.SolarSystem.Planetary.Wisdom] 
+	Appears in -full 
+.EXAMPLE    Show-Calendar
+		
+	Show a default display of this month.
+.EXAMPLE    Show-Calendar -Start "March, 2010" -End "May, 2010"
 
-    Converts the object to a todo string.
-.EXAMPLE    ConvertTo-TodoString -Task 'Take car to the garage' -Context 'car' -Project 'car_maintenance'
-    Creates a todo string from the parameters.
+	Display a date range
 #>
 
 function ConvertTo-TodoString
 {
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string]$DoneDate,
-    
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string]$CreatedDate = (Get-Date -Format "yyyy-MM-dd"),
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string]$Priority,
-
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Task,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string[]]$Context,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string[]]$Project,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string]$DueDate,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string[]]$Addon    
+        [Parameter(Mandatory)]
+        [object]$TodoObj
     )
 
-    Begin 
-    { 
-        $format = "{0}{1}{2} {3}{4}{5}{6}{7}"
-    }
-
-    Process
-    {
-        $format -f
-            $( if ($DoneDate -ne "") { "x $DoneDate " } ), 
-            $( if ($Priority -ne "") { "($Priority) " } ),
-            $CreatedDate,
-            $Task,
-            $( if ($Context -ne "") { " @$($Context -join " @")" } ),
-            $( if ($Project -ne "") { " +$($Project -join " +")" } ),
-            $( if ($DueDate -ne "") { " due:$DueDate" } ),
-            $( if ($Addon -ne "") { " $($Addon -join " ")" } )
-    }
-
-    End { }
-}         
+    "{0}{1}{2} {3}{4}{5}{6}{7}" -f
+        $( if ($TodoObj.DoneDate -ne "") { "x $($TodoObj.DoneDate) " } ), 
+        $( if ($TodoObj.Priority -ne "") { "$($TodoObj.Priority) " } ),
+        $TodoObj.CreatedDate,
+        $TodoObj.Task,
+        $( if ($TodoObj.Context -ne "") { " $($TodoObj.Context -join " ")" } ),
+        $( if ($TodoObj.Project -ne "") { " $($TodoObj.Project -join " ")" } ),
+        $( if ($TodoObj.DueDate -ne "") { " due:$($TodoObj.DueDate)" } ),
+        $( if ($TodoObj.Addon -ne "") { " $($TodoObj.Addon -join " ")" } )
+}
+         

@@ -1,26 +1,22 @@
 <#
 .SYNOPSIS
-	Creates a new todo object.
+	Short description. Appears in all basic, -detailed, -full, -examples
 .DESCRIPTION
-	Creates a new empty todo object.
+	Longer description. Appears in basic, -full and -detailed
 .NOTES
 	File Name	: New-TodoObject
 	Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 18/09/15 - Initial version
-
-    TODO  : Need to remove the functionality to set the properties when creating an ew todo object. The only function that
-            uses it is ConvertTo-TodoObject. Use Set-Todo instead as we are duplicating functionality otherwise and this functions
-            scope is creeping. This function should only create a blank to object.
 .LINK
-	https://github.com/pauby/
-.PARAMETER Property
-	 Properties to set ont he new object.
+	A hyperlink (https://github.com/pauby/). Appears in basic and -Full.
+.PARAMETER firstone
+	 Parameter description. Appears in -det, -full (with more info than in -det) and -Parameter (need to specify the parameter name)
+.INPUTS
+	Documentary text - Input type  [Universal.SolarSystem.Planetary.CommonSense]. Appears in -full
 .OUTPUTS
-	New todo object [psobject]
+	Documentary Text, eg: Output type  [Universal.SolarSystem.Planetary.Wisdom]. Appears in -full
 .EXAMPLE
-	New-TodoObject $props
-
-    Create a new todo object with the properties in $props.
+	First line is command. Other lines just text. As many as you need. Appears in -detailed and -full
 #>
 
 function New-TodoObject
@@ -36,13 +32,13 @@ function New-TodoObject
 		"CreatedDate" 	= "";		# [string] date the todo was created in yyyy-MM-dd format
 		"Priority"		= "";		# [string] todo priority (A - Z)
 		"Task"			= ""; 		# [string] the todo text 
-		"Context"		= @();		# [string[]] the todo context (such as @computer)
-		"Project"		= @();		# [string[]] the project the todo is assigned to (ie. +housebuild)
+		"Context"		= "";		# [string[]] the todo context (such as @computer)
+		"Project"		= "";		# [string[]] the project the todo is assigned to (ie. +housebuild)
 		"DueDate"		= "";		# [string] The due date of the todo (uses due:) in the format yyyy-MM-dd
   		"Threshold"		= "";		# [string] the threshold / start date of a todo (uses t:) in the format yyyy-MM-dd [for future implementation]
   		"Recurrence"	= "";		# [string]recurring todos (uses rec:) [for future implementation]
   		"Hidden"		= "";		# dummy todos that are hidden from view (uses h:) [for future implementation]
-        "Addon"         = @();       # additiona key:value pairs that we don't use but will preserve
+        "Addon"         = "";       # additiona key:value pairs that we don't use but will preserve
 		  
 		# The properties below are calculated by the script and not stored in the todo file
   		"DueIn"			= "";		# time in days the todo is due
@@ -50,30 +46,35 @@ function New-TodoObject
 		"Weight"		= "";		# the weighting of this todo
 	}
 	
+	$todoObj = New-Object -Type PSObject -Property (Merge-Hashtable $defaultProps $Property)
+    #$todoObj | gm
+
+<#    Write-Verbose 'Created new Todo Object with default properties.'
+
+    # if we have a hastable of properties passed then add them to the new object
     if ($Property)
     {
-        $objProps = (Merge-Hashtable $defaultProps $Property)
-    }
-    else
-    {
-        $objProps = $defaultProps
-    }
+        Write-Verbose 'Assigning specified properties to new todo object.'
+        foreach ($key in $Property.Keys)
+        {
+            if ($todoObj.ContainsKey($key))
+            {
+                $todoObj.$key = $Property.$key
+            }
+            else
+            {
+                Write-Verbose 'Invalid key $key in new Todo Object properties.'
+                Exit
+            }
+        }
+    }#>
 
-    $todoObj = New-Object -Type PSObject -Property $objProps
-
-    # if we set these in the $defaultProps the merge process would overwrite them
     Write-Verbose "Now setting some defaults."
-    if (-not $todoObj.CreatedDate)
+    if ($todoObj.CreatedDate -eq "")
     {
         Write-Verbose "Setting default CreatedDate."
         $todoObj.CreatedDate = Get-Date -Format "yyyy-MM-dd"
         Write-Verbose "Default CreatedDate set as $($todoObj.CreatedDate)"
-    }
-
-    $config = Get-TodoConfig
-    if ((-not $todoObj.Project) -and ($config['DefaultProject']))
-    {
-        $todoObj.Project = $config['DefaultProject']
     }
 
     $todoObj

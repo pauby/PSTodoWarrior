@@ -4,9 +4,9 @@
 .DESCRIPTION
 	Longer description. Appears in basic, -full and -detailed
 .NOTES
-	Function 	: Add-Todo
+	File Name	: Get-RegexMatches.ps1
 	Author		: Paul Broadwith (paul@pauby.com)
-	History		: 1.0 - 20/09/15 - Initial version
+	History		: 1.0 - 18/09/15 - Initial version
 .LINK
 	A hyperlink (https://github.com/pauby/). Appears in basic and -Full.
 .PARAMETER firstone
@@ -19,25 +19,30 @@
 	First line is command. Other lines just text. As many as you need. Appears in -detailed and -full
 #>
 
-
-function Add-Todo
+function Get-RegexMatches
 {
 	[CmdletBinding()]
-	Param(
-		[Parameter(Mandatory, Position=0, ValueFromRemainingArguments=$true)]
+	Param (
+		[Parameter(Mandatory, Position = 0)]
 		[ValidateNotNullOrEmpty()]
-        $todo,
-
-        [hashtable]$Config = $poshTodoConfig	
+		[string]$Pattern,
+		
+		[Parameter(Mandatory, Position=1)]
+		[ValidateNotNullOrEmpty()]
+		[string]$Text
 	)
-
-    Write-Verbose "Creating todo object."
-    $todoObj = $todo | ConvertTo-TodoObject
-
-    Write-Verbose "Exporting new todo to the todo file at $($Config['todoTaskFile'])"
-    Export-Todo -Todo $todoObj -Filename $Config['todoTaskFile'] -Append
-
-    Write-Verbose "New todo added to $($Config['todoTaskFile'])"        
+	
+	$regex = [regex]$Pattern
+    $results = $regex.Matches($Text)
+	
+    $matches = @()
+    if ($results.count)
+    {
+        foreach ($result in $results)
+        {
+            $matches += $result.value.Trim()
+        }
+    }
+	
+	$matches
 }
-
-            

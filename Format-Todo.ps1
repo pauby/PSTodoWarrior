@@ -1,17 +1,31 @@
-﻿<# .SYNOPSIS    Formats the todo.
-.DESCRIPTION    Formats the todo.
+﻿<# .SYNOPSIS    Displays a visual representation of a calendar.
+.DESCRIPTION    Displays a visual representation of a calendar. This function supports multiple months    and lets you highlight specific date ranges or days.
 .NOTES 
+    Additional Notes, eg 
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 23/09/15 - Initial version
-                  1.1 - Added lists and tags support
-
-    To display the todo in coloured format, the Weight must be the second number in the formatted output.
+    Appears in -full
 .LINK 
-    https://www.github.com/pauby
-.PARAMETER Todo    The todo to format.
-.EXAMPLE    Format-Todo $Todo
+    A hyper link, eg 
+    http://www.pshscripts.blogspot.com 
+    Becomes: "RELATED LINKS"  
+    Appears in basic and -Full 
+.PARAMETER Start    The first month to display.
+.PARAMETER HighlightDay    Specific days (numbered) to highlight. Used for date ranges like (25..31).    Date ranges are specified by the Windows PowerShell range syntax. These dates are    enclosed in square brackets.
+.INPUTS
+	Documentary text, eg: 
+	Input type  [Universal.SolarSystem.Planetary.CommonSense] 
+	Appears in -full 
+.OUTPUTS
+	Documentary Text, eg: 
+	Output type  [Universal.SolarSystem.Planetary.Wisdom] 
+	Appears in -full 
+.EXAMPLE    Show-Calendar
 		
-    Formats the todo and pipes it to Format-Colour
+	Show a default display of this month.
+.EXAMPLE    Show-Calendar -Start "March, 2010" -End "May, 2010"
+
+	Display a date range
 #>
 
 function Format-Todo
@@ -20,29 +34,19 @@ function Format-Todo
 	Param (
 			[Parameter(Mandatory,Position=0)]
 			[AllowEmptyCollection()]
-			[object[]]$Todo
+			[object[]]$Todo,
+			
+			[ValidateNotNullOrEmpty()]
+			[scriptblock]$Format
 	)	
 
-    $Config = Get-TodoConfig
-
-    if ($Config['UseListsandTags'])
-    {
-        $nameContext = 'List          '
-        $nameProject = 'Tag           '
-    }
-    else
-    {
-        $nameContext = 'Context       '
-        $nameProject = 'Project       '
-    }
-
-    $Todo | Format-Table -Wrap -Property `
-	    @{ n='L  '; e={ $_.Line }; Alignment='left'; Width=3; },
-	    @{ n='Weight'; e={ "{0:N2}" -f $_.Weight }; Alignment='right'; Width=6; },
-	    @{ n='P'; e={ $_.Priority }; Width=1; },		
-	    @{ n='Age  '; e={ "{0}d" -f $_.Age }; Width=5; },
-	    @{ n='Due  '; e={ if (-not [string]::IsNullOrWhitespace($_.DueIn)) { "{0}d" -f $_.DueIn } }; Width=5; },
-	    @{ n=$nameContext; e={ $_.Context -join "`n" }; Width=15; },
-	    @{ n=$nameProject; e={ $_.Project -join "`n" }; Width=15; },
-	    @{ n='Task               '; e={ $_.Task } } | Out-String -Stream | Format-Colour
+    $Todo | where {$_.DoneDate -eq ""} | Sort-Object -Property @{e="Weight"; Descending=$true}, @{e="Line"; Descending=$False} |  Format-Table -Wrap -Property `
+	@{ n='L  '; e={ $_.Line }; Alignment='left'; Width=3; },
+	@{ n='Weight'; e={ "{0:N2}" -f $_.Weight }; Alignment='right'; Width=6; },
+	@{ n='P'; e={ $_.Priority }; Width=1; },		
+	@{ n='Age  '; e={ "{0}d" -f $_.Age }; Width=5; },
+	@{ n='Due  '; e={ if ($_.DueIn -ne "") { "{0}d" -f $_.DueIn } }; Width=5; },
+	@{ n='Context       '; e={ $_.Context -join "`n" }; Width=15; },
+	@{ n='Project       '; e={ $_.Project -join "`n" }; Width=15; },
+	@{ n='Task               '; e={ $_.Task } } | Out-String -Stream | Format-Colour
 }
