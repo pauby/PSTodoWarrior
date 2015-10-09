@@ -1,41 +1,28 @@
-﻿    <# 
-    .SYNOPSIS
-        Displays a visual representation of a calendar.
-    .DESCRIPTION
-        Displays a visual representation of a calendar. This function supports multiple months
-        and lets you highlight specific date ranges or days.
-    .NOTES 
-        Additional Notes, eg 
-        Author		: Paul Broadwith (paul@pauby.com)
-	    History		: 1.0 - 22/09/15 - Initial version
-        Appears in -full
-    .LINK 
-        A hyper link, eg 
-        http://www.pshscripts.blogspot.com 
-        Becomes: "RELATED LINKS"  
-        Appears in basic and -Full 
-    .PARAMETER Start
-        The first month to display.
-    .PARAMETER HighlightDay
-        Specific days (numbered) to highlight. Used for date ranges like (25..31).
-        Date ranges are specified by the Windows PowerShell range syntax. These dates are
-        enclosed in square brackets.
-	.INPUTS
-		Documentary text, eg: 
-		Input type  [Universal.SolarSystem.Planetary.CommonSense] 
-		Appears in -full 
-	.OUTPUTS
-		Documentary Text, eg: 
-		Output type  [Universal.SolarSystem.Planetary.Wisdom] 
-		Appears in -full 
-    .EXAMPLE
-        Show-Calendar
+﻿<# 
+.SYNOPSIS
+    Converts a todo string to a todo object
+.DESCRIPTION
+    Converts a todo string to a todo object.
+.NOTES 
+    Author		: Paul Broadwith (paul@pauby.com)
+	History		: 1.0 - 22/09/15 - Initial version
+.LINK 
+    http://www.github.com/pauby
+.PARAMETER RawTodo
+    This is the raw todo text - ie. 'take car to garage @car +car_maintenance'
+.INPUTS
+	Input type [String]
+.OUTPUTS
+	Output type [PSObject]
+.EXAMPLE
+    ConvertTo-TodoObject -RawTodo 'take car to garage @car +car_maintenance'
 		
-		Show a default display of this month.
-    .EXAMPLE
-        Show-Calendar -Start "March, 2010" -End "May, 2010"
+	Converts the RawTodo into a todo object.
+.EXAMPLE
+    $todo = 'take car to garage @car +car_maintenance'
+    $todo | ConvertTo-Todoobject
 
-		Display a date range
+	Converts $todo into a todo object.
 #>
 
 function ConvertTo-TodoObject
@@ -43,46 +30,33 @@ function ConvertTo-TodoObject
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory, ValueFromPipeline=$true)]
-        [string[]]$RawTodo,
-
-        [ValidateNotNullOrEmpty()]
-        [hashtable]$Config = $poshTodoConfig
+        [string[]]$RawTodo
     )
 
     Begin
     {
+        $config = Get-TodoConfig
+
         Write-Verbose "Converting raw todos to objects."
         $currentDate = Get-Date
 
         # create regex to extra the first poart of the todo
-        $opt = [System.Text.Regularexpressions.RegexOptions]
-        $linePattern = "^(?:x\ (?<done>\d{4}-\d{2}-\d{2})\ )?(?:\((?<prio>[A-Z])\)\ )?(?:(?<created>\d{4}-\d{2}-\d{2})?\ )?(?<task>.*)"
-#       $
-
-<#@"
-        ^(?:x\ (?<done>\d{4}-\d{2}-\d{2})\ )?  # Done date
-        (?:\((?<prio>[A-Z])\)\ )?             # Priority
-        (?:(?<created>\d{4}-\d{2}-\d{2})?\ )? # Created date
-        (?<task>.*)
-        $
-"@#>
-#        $todoPattern = New-Object System.Text.Regularexpressions.Regex($linePattern, $opt::IgnorePatternWhitespace)
-        $regexLine = [regex]"^(?:x\ (?<done>\d{4}-\d{2}-\d{2})\ )?(?:\((?<prio>[A-Z])\)\ )?(?:(?<created>\d{4}-\d{2}-\d{2})?\ )?(?<task>.*)"
-        $regexContext = [regex]"(?:\s@\S+)"
-        #"((?<=\s)(?:@\S+))+"
-        $regexProject = [regex]"(?:\s\+\S+)"
-        #"((?<=\s)(?:\+\S+))+"
+            # $linePattern = "^(?:x\ (?<done>\d{4}-\d{2}-\d{2})\ )?(?:\((?<prio>[A-Z])\)\ )?(?:(?<created>\d{4}-\d{2}-\d{2})?\ )?(?<task>.*)"
+        $regexLine = [regex]"^(?:x\ (?<done>\d{4}-\d{2}-\d{2})\ )?(?:\((?<prio>[A-Za-z])\)\ )?(?:(?<created>\d{4}-\d{2}-\d{2})?\ )?(?<task>.*)"
+        $regexContext = [regex]"(?:\s@\S+)" # this regex is also used to replace the context with <blank> so it needs to capture the '@' too or this will be left
+            #"((?<=\s)(?:@\S+))+"
+        $regexProject = [regex]"(?:\s\+\S+)" # this regex is also used to replace the context with <blank> so it needs to capture the '@' too or this will be left
+            #"((?<=\s)(?:\+\S+))+"
         $regexDue = [regex]"(?:due:\d{4}-\d{2}-\d{2})"
-#"(?i)due:(?<due>[0-9]+-[0-9]+-[0-9]+)"
+            #"(?i)due:(?<due>[0-9]+-[0-9]+-[0-9]+)"
         $regexAddon = [regex]"(?<=\s)(?:\S+\:(?!//)\S+)"
-        #"(?:\s\S+\:(?!//)\S+)"
+            #"(?:\s\S+\:(?!//)\S+)"
         $lineNum = 0
     }
 
     Process
     { 
         Write-Verbose "--- Start of $_"
-#        $parsedLine = $todoPattern.Match($_).Groups
         $parsedLine = $regexLine.Match($_).Groups
 
         $todo = @{}
@@ -97,7 +71,7 @@ function ConvertTo-TodoObject
         Write-Verbose "Looking for context / lists in the todo text."
         if ($regexContext.IsMatch($todo['Task']))
         {
-            $todo['Context'] = @($regexContext.Matches($todo['Task']) | sort value | Get-Unique | % { $_.ToString().Trim() } )
+            $todo['Context'] = @($regexContext.Matches($todo['Task']) | sort value | Get-Unique | % { $_.ToString().Trim() } | % { $_.Substring(1) } )
             Write-Verbose "Found $($todo['Context'].Count) context / lists: $($todo['Context'] -join ',')"
             Write-verbose "Removing the context from the todo task."
             $todo['Task'] = $regexContext.Replace($todo['Task'], "")
@@ -106,7 +80,7 @@ function ConvertTo-TodoObject
         Write-Verbose "Looking for projects / tags in the todo."        
         if ($regexProject.IsMatch($todo['Task']))
         {
-            $todo['Project'] = @($regexProject.Matches($todo['Task']) | Sort value | Get-Unique | % { $_.ToString().Trim() } )
+            $todo['Project'] = @($regexProject.Matches($todo['Task']) | Sort value | Get-Unique | % { $_.ToString().Trim() } | % { $_.Substring(1) } )
             Write-Verbose "Found $($todo['Project'].Count) projects / tags: $($todo['Project'] -join ',')"
             Write-Verbose 'Removing the project from the todo task.'
             $todo['Task'] = $regexProject.Replace($todo['Task'], "")
@@ -152,9 +126,9 @@ function ConvertTo-TodoObject
         Write-Verbose "Calculating the todo age from CreatedDate $($todoObj.CreatedDate)."
         $todoObj.Age = ((($currentDate) - (Get-Date $todoObj.CreatedDate)).Days)    
 
-        # This calculation shoudl be done after the object has been created and all other object changes made
+        # This calculation should be done after the object has been created and all other object changes made
         Write-Verbose "Measuring the todo's weight."
-        $todoObj.Weight = Measure-TodoWeight -Todo $todoObj -Config $Config -Verbose:$VerbosePreference
+        $todoObj.Weight = Measure-TodoWeight -Todo $todoObj -Verbose:$VerbosePreference
         Write-Verbose "Todo weight is $($todoObj.Weight)"
 
         $todoObj
@@ -162,4 +136,3 @@ function ConvertTo-TodoObject
 
     End {}
 }
-            
