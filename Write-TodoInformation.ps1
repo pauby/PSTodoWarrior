@@ -1,31 +1,15 @@
-﻿    <#     .SYNOPSIS        Displays a visual representation of a calendar.
-    .DESCRIPTION        Displays a visual representation of a calendar. This function supports multiple months        and lets you highlight specific date ranges or days.
-    .NOTES 
-        Additional Notes, eg 
-        Author		: Paul Broadwith (paul@pauby.com)
-	    History		: 1.0 - 25/09/15 - Initial version
-        Appears in -full
-    .LINK 
-        A hyper link, eg 
-        http://www.pshscripts.blogspot.com 
-        Becomes: "RELATED LINKS"  
-        Appears in basic and -Full 
-    .PARAMETER Start        The first month to display.
-    .PARAMETER HighlightDay        Specific days (numbered) to highlight. Used for date ranges like (25..31).        Date ranges are specified by the Windows PowerShell range syntax. These dates are        enclosed in square brackets.
-	.INPUTS
-		Documentary text, eg: 
-		Input type  [Universal.SolarSystem.Planetary.CommonSense] 
-		Appears in -full 
-	.OUTPUTS
-		Documentary Text, eg: 
-		Output type  [Universal.SolarSystem.Planetary.Wisdom] 
-		Appears in -full 
-    .EXAMPLE        Show-Calendar
-		
-		Show a default display of this month.
-    .EXAMPLE        Show-Calendar -Start "March, 2010" -End "May, 2010"
+﻿<# .SYNOPSIS    Writes informational messages to the host.
+.DESCRIPTION    Writes information messages to the host about the todos. 
+.NOTES 
+    Author		: Paul Broadwith (paul@pauby.com)
+	History		: 1.0 - 25/09/15 - Initial version
 
-		Display a date range
+    TODO        : Unsure of the use of this function. Consider removal.
+.LINK 
+    https://www.github.com/pauby/ .PARAMETER Todo    The todos.
+.EXAMPLE    Write-TodoInformation -Todo $todos
+
+    Writes information about the todos to the host.
 #>
 
 function Write-TodoInformation
@@ -34,23 +18,23 @@ function Write-TodoInformation
     Param (
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
-        [object[]]$Todo,
-
-        [ValidateNotNullOrEmpty()]
-        [hashtable]$Config = $poshTodoConfig
+        [object[]]$Todo
     )
+
+    $config = Get-TodoConfig
 
     Write-Verbose "Counting completed todos."
     $todosCompleted = @(($Todo | where { $_.DoneDate -ne "" })).Count
     if ($todosCompleted -gt 0)
     {
         $infoText = "* $todosCompleted completed todos found."
-        if ($Config.AutoArchive)
+        if ($config.AutoArchive)
         {
             $infoText += " Completed todos will be automatically archived."
         }
 
-        Write-Host $infoText -ForegroundColor $Config.InfoMsgsColour
+        Write-Host $infoText -ForegroundColor $config.InfoMsgsColour
+        Write-Host
     }
 }
 
