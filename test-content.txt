@@ -1,0 +1,9 @@
+x 2015-02-01 2013-12-28 Apply for a Makro card @someday due:2015-09-09
+(A) 2014-01-01 Change address due:2014-01-09 for pension scheme @someday
+2014-01-05 Get a smart swapper at Change4Life @someday Due:10-01-01
+2014-05-18 Change server administrator password @someday Due2014-09-06
+2014-05-18 Change server administrator password @someday Due2014-09-06
+(H) 2012-11-05 Get a smart swapper at Change4Life @someday +ebay +help Due:10-01-01
+2014-05-18 Change server administrator password @someday Due2014-09-06
+(Z) 2014-05-18 Change server administrator password @someday Due2014-09-06 +cakes
+x 2012-02-01 (Y) 2013-12-28 Apply for a Makro card @someday due:2015-09-09 +list +another_list
