@@ -1,5 +1,9 @@
-﻿<# .SYNOPSIS    Contains test functions related to todos.
-.DESCRIPTION    Contains test functions that test the validity of the todo properties..NOTES 
+﻿<# 
+.SYNOPSIS
+    Contains test functions related to todos.
+.DESCRIPTION
+    Contains test functions that test the validity of the todo properties.
+.NOTES 
     File Name	: Test-Functions.ps1  
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 28/09/15 - Initial version
@@ -7,18 +11,24 @@
     https://www.github.com/pauby
 #>
 
-<# .SYNOPSIS    Tests a date.
-.DESCRIPTION    Tests a date for the format yyy-MM-dd. It does not test to see if the date is in the future, past or present. .NOTES 
+<# 
+.SYNOPSIS
+    Tests a date.
+.DESCRIPTION
+    Tests a date for the format yyy-MM-dd. It does not test to see if the date is in the future, past or present. 
+.NOTES 
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 28/09/15 - Initial version
 
     TODO        : Might be easier to this via a regular expression.
 .LINK 
     https://www.github.com/pauby
-.PARAMETER TestDate    The date to test. Note that this is a string and not a date object.
+.PARAMETER TestDate
+    The date to test. Note that this is a string and not a date object.
 .OUTPUTS
 	Whether the date is valid or not. Output type is [bool]
-.EXAMPLE    Test-TodoDate -TestDate '2015-10-10'
+.EXAMPLE
+    Test-TodoDate -TestDate '2015-10-10'
 
     Tests to ensure the date '2015-10-10' is in the valid todo date format and outputs $true or $false.
 #>
@@ -28,15 +38,15 @@ function Test-TodoDate
     Param (
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string]$TestDate
+        [string]$TodoDate
     )
 
     # what we do here is first of all pass the date to Get-Date and ask it to format it in yyyy-MM-dd. 
     # If it doesn't output the same as the input the date is not in a valid format.
     # also make sure we don't display errors if there is invalid input
     $error.Clear()
-    $result = Get-Date $TestDate -Format "yyyy-MM-dd" -ErrorAction SilentlyContinue
-    if ($result.CompareTo($TestDate) -ne 0 -or $? -eq $false) # test if the date returned is not the same as the input or we have an error
+    $result = Get-Date $TodoDate -Format "yyyy-MM-dd" -ErrorAction SilentlyContinue
+    if ($result.CompareTo($TodoDate) -ne 0 -or $? -eq $false) # test if the date returned is not the same as the input or we have an error
     {
         $false
     }
@@ -46,8 +56,12 @@ function Test-TodoDate
     }
 }
 
-<# .SYNOPSIS    Tests a todo priority.
-.DESCRIPTION    Tests to ensure that the priority is valid..NOTES 
+<# 
+.SYNOPSIS
+    Tests a todo priority.
+.DESCRIPTION
+    Tests to ensure that the priority is valid.
+.NOTES 
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 28/09/15 - Initial version
 
@@ -56,10 +70,12 @@ function Test-TodoDate
     TODO        : Might be easier to this via a regular expression.
 .LINK 
     https://www.github.com/pauby/ 
-.PARAMETER Priority    The priority to test.
+.PARAMETER Priority
+    The priority to test.
 .OUTPUTS
 	Whether the priority is correct. Output type is [bool]
-.EXAMPLE    Test-TodoPriority "N"
+.EXAMPLE
+    Test-TodoPriority "N"
 
     Tests to see if the priority "N" is valid and outputs $true or $false.
 #>
@@ -76,8 +92,12 @@ function Test-TodoPriority
     ($Priority.CompareTo("A") -ge 0) -and ($Priority.CompareTo("Z") -le 0) -and ($Priority.Length -eq 1)
 }
 
-<# .SYNOPSIS    Tests the todo context.
-.DESCRIPTION    Test the todo context is in the correct format..NOTES 
+<# 
+.SYNOPSIS
+    Tests the todo context.
+.DESCRIPTION
+    Test the todo context is in the correct format.
+.NOTES 
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 28/09/15 - Initial version
 
@@ -87,10 +107,12 @@ function Test-TodoPriority
                   At the moment if any of the contexts fail we fail the whole test.
 .LINK 
     https://www.github.com/pauby/ 
-.PARAMETER Context    The context(s) to test.
+.PARAMETER Context
+    The context(s) to test.
 .OUTPUTS
 	Whether the context(s) are valid or not. Output type is [bool]
-.EXAMPLE    Test-TodoContext "@computer","@home"
+.EXAMPLE
+    Test-TodoContext "@computer","@home"
 
     Tests to see if the contexts "@computer" and "@home" are valid and returns $true or $false.
 #>
@@ -121,8 +143,12 @@ function Test-TodoContext
     $true
 }
 
-<# .SYNOPSIS    Tests a todo project.
-.DESCRIPTION    Test a todo project is valid and in the correct format..NOTES 
+<# 
+.SYNOPSIS
+    Tests a todo project.
+.DESCRIPTION
+    Test a todo project is valid and in the correct format.
+.NOTES 
     Author		: Paul Broadwith (paul@pauby.com)
 	History		: 1.0 - 28/09/15 - Initial version
 
@@ -132,10 +158,12 @@ function Test-TodoContext
                   At the moment if any of the contexts fail we fail the whole test.
 .LINK 
     https://www.github.com/pauby/ 
-.PARAMETER Project    The project(s) to test.
+.PARAMETER Project
+    The project(s) to test.
 .OUTPUTS
 	Whether the project(s) are valid. Output tye is [bool]
-.EXAMPLE    Test-TodoProject "+computer","+home"
+.EXAMPLE
+    Test-TodoProject "+computer","+home"
 
     Tests if the projects "+computer" and "+home" are valid and outputs $true or $false.
 #>
