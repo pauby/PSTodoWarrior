@@ -84,7 +84,7 @@ function Set-Todo
         if ($DoneDate)
         {
             Write-Verbose "DoneDate is to be set. Testing it's valid."
-            if (Test-TodoDate -Date $DoneDate)
+            if (Test-TodoDate -TodoDate $DoneDate)
             {
                 Write-Verbose "DoneDate has been tested and is in the correct format."
             }
@@ -98,7 +98,7 @@ function Set-Todo
         if ($CreatedDate)
         {
             Write-Verbose "CreatedDate is to be set. Testing it's valid."
-            if (Test-TodoDate -Date $CreatedDate)
+            if (Test-TodoDate -TodoDate $CreatedDate)
             {
                 Write-Verbose "CreatedDate has been tested and is in the correct format."
             }
@@ -154,7 +154,7 @@ function Set-Todo
         if ($DueDate)
         {
             Write-Verbose "DueDate is to be set. Testing it's valid."
-            if (Test-TodoDate -Date $DueDate)
+            if (Test-TodoDate -TodoDate $DueDate)
             {
                 Write-Verbose "DueDate has been tested and is in the correct format."
             }
