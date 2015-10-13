@@ -33,26 +33,7 @@ function Get-TodoDefaultConfig
         # Backups
         'BackupPath'        = "c:\users\paul\sync\apps-all\todo\backups\";
         'BackupDaysToKeep'  = 7;
-        		
-		# Priorities
-#		'PriorityMaximum' 	= 'D';		# last priority to use - if any todo has a lower priority it will be set to this
-
-        # Projects
-        'ProjectDefault'    = 'inbox';
-        'ProjectNextAction' = 'next';
-		
-		# Weighting 
-        'WeightStart'       = 1.0;                    # initial weight of all todos
-        'WeightAgeFactor'   = 0.01;                 # multipler for the todo age
-        'WeightDueInFactor' = 0.1;
-#        'WeightPriorityCalc' = { param([hashtable]$config, [object]$todo); if ($config['WeightPriority'].ContainsKey($todo.Priority)) { $config['WeightPriority'][$todo.Priority] } else { 3.5 } };
-                          # multipler for the todo duein
-#		'WeightPriority'	= @{                    # priority weightings in the format 'priority' = 'weight'
-#			'A' = 15.00;
-#			'B'	= 10.00;
-#			'C'	= 7.00;
-#			'D'	= 5.00
-#		};
+	
 		'WeightForegroundColour' = [ordered]@{	    # colours for each weights - any weight at or above the level will eb that colour (up to the previous value). 
 			'20' 	= 'yellow';                     # This MUST be in order otherwise the colours will nto work.
 			'15' 	= 'red';                        # it's in the format 'weight number' = 'valid PowerShell colour'
@@ -60,9 +41,6 @@ function Get-TodoDefaultConfig
 		};
         'WeightPriority'    = 6.0;
         'WeightDueDate'     = 12.0;
-#        'WeightTagToday'    = 20.0;
-#        'WeightTagNext'     = 15.0;
-#        'WeightTagWaiting'  = -3.0;
         'WeightHasProject'  = 1.0;
         'WeightAge'         = 2.0;
         'WeightProject'     = @{                    # all projects / tags must be in lowercase
@@ -71,6 +49,7 @@ function Get-TodoDefaultConfig
             'today'   = 20.0;
             'someday' = -15.0;
         };
+
         # Views
         'TodoLimit'   = 25;
         'Reports' = @{
@@ -79,8 +58,6 @@ function Get-TodoDefaultConfig
             'all'     = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { foreach ($todo in $todos) { $output += $todo } } end { $output | sort Weight -Descending } };
             'inbox'   = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { foreach ($todo in $todos) { if ($todo.Context.Count -eq 0) { $output += $todo } } } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property Weight -Descending } };
         };
-		
-		
 	}
 	
 	$defaultConfig
