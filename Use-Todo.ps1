@@ -50,7 +50,7 @@ function Use-Todo
     Param (
         [Parameter(Position=0)]
         [ValidateSet("l", "list", "a", "add", "r", "remove", "m", "modify", "d", "done", "arch", "archive")] 
-        [string]$Command = "",
+        [string]$Command = "l",
 
         [Parameter(Position=1)]
         [Alias("l")]
@@ -84,9 +84,9 @@ function Use-Todo
 
     $todoConfig = Get-TodoConfig
 
-    switch -regex ($Command)
+    switch ($Command)
     {
-        "\bli?s?t?\b|^$" 
+        { $_ -in "l", "list" }
         {
             Write-Verbose "Listing todos."
             $todos = import-todo $todoConfig.todoTaskFile -Verbose:$VerbosePreference
@@ -113,9 +113,10 @@ function Use-Todo
             $todos = $todos | &$todoConfig['Reports']["$Report"] -Config $todoConfig
             Format-Todo $todos
             Write-TodoInformation $todos
+            break
         }
 
-        "\bad?d?\b"
+        { $_ -in "a","add" }
         {
             Write-Verbose "Adding a new todo."
             if ($Task)
@@ -130,9 +131,11 @@ function Use-Todo
             {
                 Write-Host 'No task defined. No todo created.'
             }
+
+            break
         }
 
-        "\bmo?d?\b"
+        { $_ -in "m","modify" }
         {
             Write-Verbose "Modifying todos $($Line -join ", ")."
 #            $todos = Import-Todo $todoConfig.todoTaskFile
@@ -159,34 +162,37 @@ function Use-Todo
             Write-Host "$modified todos modified."
         }   
 
-        "\bdo?n?e?\b"
+        { $_ -in "d","done" }
         {
             Write-Verbose "Completing todos."
             $todaysDate = Get-TodoTodaysDate
             $todos = Import-Todo $todoConfig.todoTaskFile
 
-            $modified = 0 # number of todos modified
+            $modified = @() # holds modified todos
             foreach ($todo in $todos)
             {
                 if ($Line -contains $todo.Line)
                 {
                     Write-Verbose "Found todo to modify: $todo"
+                    $modified += $todo.PSObject.Copy() # $todo will be modified later so take a copy of it now so we can display it how it was before completion
                     $todo = $todo | Set-Todo -DoneDate $todaysDate
-                    $modified++
                 }
             }
 
             Write-Verbose 'Finished searching for todos to modify.'
-            if ($modified -gt 0)
+            if ($modified.Count -gt 0)
             {
-                Write-Verbose "$modified todos modified.`nExporting todos to $($todoConfig['TodoTaskFile'])"
+                Write-Verbose "$($modified.Count) todos modified.`nExporting todos to $($todoConfig['TodoTaskFile'])"
                 Export-Todo -TodoObject $todos -Path $todoConfig['todoTaskFile'] -BackupPath $todoConfig['BackupPath'] -DaysToKeep $todoConfig['BackupDaysToKeep'] -Verbose:$VerbosePreference
             }                   
 
-            Write-Host "$modified todos completed.`n"
+            Write-Host "$($modified.Count) todos completed:`n"
+            $modified | ConvertTo-TodoString 
+            Write-Host
+            break
         }
 
-        "\bre?m?o?v?e?\b"
+        { $_ -in "r","remove" }
         {
             Write-Verbose "Removing todos."
             $todos = Import-Todo $todoConfig.todoTaskFile
@@ -195,6 +201,8 @@ function Use-Todo
             Export-Todo -TodoObject $todos -Path $todoConfig['todoTaskFile'] -BackupPath $todoConfig['BackupPath'] -DaysToKeep $todoConfig['BackupDaysToKeep'] -Verbose:$VerbosePreference
 
             Write-Host "$($startCount - $todos.Count) todos removed."
+
+            break
         }
 
         "archive"
@@ -223,6 +231,7 @@ function Use-Todo
             Export-Todo -TodoObject $activeTodos -Path $todoConfig['todoTaskFile'] -BackupPath $todoConfig['BackupPath'] -DaysToKeep $todoConfig['BackupDaysToKeep'] -Verbose:$VerbosePreference
 
             Write-Host "$($doneTodos.Count) done todos archived."
+            break
         }
     }
 }
