@@ -1,4 +1,4 @@
-# PoshTodo
+# PSTodo
 
 This is a powershell CLI to the [Todo.txt](http://todotxt.com/) todo file format with some PowerShell like features and alson taking inspiration from Taskwarrior.
 
@@ -14,7 +14,7 @@ Each task is split into Todo.txt components. These components are detailed in Ne
 
 ## Configuration format
 
-PoshTodo's configuration format is stored in Get-TodoDefaultConfig.ps1
+PSTodo's configuration format is stored in Get-TodoDefaultConfig.ps1
 	
 # TODO
 
