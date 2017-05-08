@@ -1,13 +1,12 @@
-﻿<# 
+﻿function Use-Todo
+{
+<# 
 .SYNOPSIS
-    Used to manipulate todos.
+    One overall function to work with todos.
 .DESCRIPTION
-    Provides access to commands to manipulate todos. Acts as a frontend for other todo functions.
-.NOTES 
-    Author		: Paul Broadwith (paul@pauby.com)
-	History		: 1.0 - 28/09/15 - Initial version
+    This cmdlet is a wrapper for the other cmdlets and allows you to work with todos. See Command parameter for what you can do.
 .LINK 
-    http://www.github.com/pauby/poshtodo
+    http://www.github.com/pauby/pstodowarrior
 .PARAMETER Command
     This is the command to process and can be:
         List    - displays the todos;
@@ -32,7 +31,7 @@
     Todo due date to be used.
 .PARAMETER Addon
     The addons that are to be used for the todo.
-.PARAMETER Report
+.PARAMETER View
     The report to be used when displaying the todos. 
 .EXAMPLE
     Use-Todo -command add -priority A -task 'Take car to the garage' -project 'care-maintenance' -context 'car'
@@ -44,8 +43,6 @@
     Removes the todo at line 15.
 #>
 
-function Use-Todo
-{
     [CmdletBinding()]
     Param (
         [Parameter(Position=0)]
@@ -78,39 +75,36 @@ function Use-Todo
         [Alias("a")]
         [string[]]$Addon,
 
-        [Alias("r")]
-        [string]$Report
+        [Alias("v")]
+        [string]$Filter = 'default'
     )
-
-    $todoConfig = Get-TodoConfig
 
     switch ($Command)
     {
         { $_ -in "l", "list" }
         {
             Write-Verbose "Listing todos."
-            $todos = import-todo $todoConfig.todoTaskFile -Verbose:$VerbosePreference
+            $todos = Import-Todo $todoConfig.TodoTaskFile
 
-            if ($Report)
+            # check we have a view specified and if not use the default
+            if ($Filter)
             {
-                Write-Verbose "Looking up view '$Report'."
-                if (-not $todoConfig['Reports'].ContainsKey("$Report"))
-                {
+                Write-Verbose "Looking up view '$View'."
+                if (-not $todoConfig.View.ContainsKey("$View")) {
                     Write-Verbose 'View not found. Using default.'
-                    $Report = 'default'
+                    $View = 'default'
                 }
-                else
-                {
+                else {
                     Write-Verbose 'View found.'
                 }
             }
-            else
-            {
+            else {
                 Write-Verbose 'View not specified - using ''default''.'
-                $Report = 'default'
+                $View = 'default'
             }
 
-            $todos = $todos | &$todoConfig['Reports']["$Report"] -Config $todoConfig
+
+            $todos = $todos | &$todoConfig.View.$Report -Config $todoConfig
             Format-Todo $todos
             Write-TodoInformation $todos
             break
