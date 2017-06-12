@@ -1,0 +1,14 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    // Powershell settings
+    "powershell.scriptAnalysis.settingsPath": "./PSScriptAnalyzerSettings.psd1.psd1",
+    "powershell.scriptAnalysis.enable": true,
+    "powershell.codeFormatting.openBraceOnSameLine": true,
+    "powershell.enableProfileLoading": false,
+    "powershell.codeFormatting.ignoreOneLineBlock": true,
+    "powershell.codeFormatting.newLineAfterCloseBrace": true,
+    "powershell.codeFormatting.whitespaceAfterSeparator": true,
+    "powershell.codeFormatting.whitespaceAroundOperator": true,
+    "powershell.codeFormatting.whitespaceBeforeOpenBrace": true,
+    "powershell.codeFormatting.whitespaceBeforeOpenParen": true
+}
