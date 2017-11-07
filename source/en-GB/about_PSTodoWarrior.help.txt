@@ -1,0 +1,40 @@
+TOPIC
+    about_PSTodoWarrior
+
+SHORT DESCRIPTION
+
+    PSTodoWarrior is a PowerShell module for working with TodoTxt format files
+    with inspiration from Taskwarrior.
+    
+LONG DESCRIPTION
+
+    PSTodoWarrior is a PowerShell module for working with TodoTxt format files
+    with inspiration from Taskwarrior. It extends the traditional Todo.txt
+    format while still staying compatible with it.  
+
+    Todo.txt format properties that are used:
+
+        "DoneDate"      = [string] todo completion date in yyyy-MM-dd format
+        "CreatedDate"   = [string] todo creation date in yyyy-MM-dd format
+        "Priority"      = [string] todo priority (A - Z)
+        "Task"          = [string] todo task / description text
+        "Context"       = [string[]] todo context (ie. @computer)
+        "Project"       = [string[]] todo project (ie. +housebuild)
+        "Addon"         = [hashtable] key:value pairs extending Todo.txt format
+
+POWERSHELL COMPATIBILITY
+
+    PowerShell v3.
+
+FEEDBACK
+
+    https://github.com/pauby/pstodowarrior
+
+CONTRIBUTING
+
+    https://github.com/pauby/pstodowarrior
+
+SEE ALSO
+    
+    Todo.txt project - http://todotxt.com/
+    TaskWarrior - https://taskwarrior.org/
