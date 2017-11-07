@@ -1,28 +1,25 @@
-$script:todoConfig = [pscustomobject]@{
+@{
 #    TodoTaskFile        = $env:TODO_TASK;
 #    TodoDoneFile 	    = $env:TODO_DONE;
 
-    TodoTaskFile        = 'todo.txt';
-    TodoDoneFile 	    = 'done.txt';
+    TodoTaskPath        = 'todo.txt';
+    TodoDonePath        = 'done.txt';
 
     # Context and project name
     # name text of the Context property of the todo - usually 'Context' or 'List'  
     NameContext         = 'Context';
     # name text of the Project property of the todo - usually 'Project' or 'Tag' 
-    NameProject         = 'Project';     
-
-    # Colour for information messages
-    InfoMsgsColour    = 'DarkCyan';
+    NameProject         = 'Project';
 
     # Archives
     # if $true automatically archives completed todos to the TodoDoneFile, if $false they remain in the TodoTaskFile
-    AutoArchive       = $false; # not implemented yet - DO NOT USE
+    AutoArchive         = $false; # not implemented yet - DO NOT USE
 
     # Backups
     # backups are stored in the same folder as the TodoTaskFile
-    BackupFolder   = 'backups';
+    BackupFolder        = 'backups';
     # Number of backups to keep in the BackupFolder
-    BackupDaysToKeep  = 7;
+    BackupDaysToKeep    = 7;
 
     # Colours
     # Colours for each weights - any weight at or above the level will be that colour (up to the previous value). 
@@ -33,6 +30,11 @@ $script:todoConfig = [pscustomobject]@{
         15 	= 'red';                        
         1 	= 'darkgreen';
     };
+
+    
+    # Colour for information messages
+    InfoMsgsColour         = 'DarkCyan';
+
 
     # Weights
     # TODO: These needs explained 
