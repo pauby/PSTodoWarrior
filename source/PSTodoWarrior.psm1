@@ -1,49 +1,28 @@
-<# 
-.NOTES 
-    File Name	: PoshTodo.psm1
-    Author		: Paul Broadwith (paul@pauby.com)
-	History		: 1.0 - 09/10/15 - Initial version
-
-    TODO        : 
-#>
 #Requires -Version 3
 Set-StrictMode -Version Latest
+$defaultSettingsfFilename = 'PSTodoWarriorSettings.psd1'
 
-# Load configuration
-
-$functionsToExport = @('Import-Todo')
-$scriptsToLoad = @(
-    'PSTodoWarriorConfig.ps1',
-#    'Add-Todo.ps1',
-#    'Backup-Todo.ps1',
-#    'ConvertTo-TodoObject.ps1',
-#    'ConvertTo-TodoString.ps1',
-#    'Export-Todo.ps1',
-#    'Format-Colour.ps1',
-#    'Format-Todo.ps1',    
-#    'Get-TodoConfig.ps1',
-#    'Get-TodoDefaultConfig.ps1',
-    'Public\Import-Todo.ps1' #,
-#    'Measure-TodoWeight.ps1',
-#    'Merge-Hastable.ps1',
-#    'New-TodoObject.ps1',    
-#    'Remove-Todo.ps1',
-#    'Set-Todo.ps1',
-#    'Set-TodoConfig.ps1',
-#    'Test-Functions.ps1',
-#    'Test-TodoConfig.ps1',
-#    'Use-Todo.ps1',
-#    'Utility-Functions.ps1',
-#    'Write-TodoInformation.ps1'
-)
-
-foreach ($script in $scriptsToLoad)
-{
-    Write-Verbose "Importing script file $script"
-    . (Join-Path $PSScriptRoot $script)
+# Find settings file
+if (Test-Path variable:TWSettingsPath) {
+    Write-Verbose "Found session variable TWSettingsPath."
+    $settingsPath = $TWSettingsPath
+}
+elseif (Test-Path env:TW_SETTINGS_PATH) {
+    Write-Verbose "Found environment variable TW_SETTINGS_PATH."
+    $settingsPath = $env:TW_SETTINGS_PATH
+}
+else {
+    Write-Verbose "No settings path explicitly specified. Using home folder."
+    $settingsPath = "~\$defaultSettingsfFilename"
 }
 
-Export-ModuleMember -Function $functionsToExport
+if (Test-Path $settingsPath -PathType Leaf) {    
+    Write-Verbose "Loading settings file $settingsPath"
+    $twSettings = (& $settingsPath)
+    $twSettings.SettingsPath = $settingsPath
+}
+else {
+    throw "Cannot find settings file at $settingsPath"
+}
 
-#Set-Alias t Use-Todo -Verbose:$VerbosePreference
-Export-ModuleMember -Alias t
+Set-Alias t Use-Todo
