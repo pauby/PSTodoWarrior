@@ -21,6 +21,5 @@ test.ps1
 test-content.txt
 todo.txt
 done.txt
-.vscode/
 oldcode/
 ToBeDone/
