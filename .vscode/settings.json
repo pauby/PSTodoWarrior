@@ -1,9 +1,9 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-        "files.defaultLanguage": "powershell",
-        
+    "files.defaultLanguage": "powershell",
+
     // Powershell settings
-    "powershell.scriptAnalysis.settingsPath": "./PSScriptAnalyzerSettings.psd1.psd1",
+    "powershell.scriptAnalysis.settingsPath": "./PSScriptAnalyzerSettings.psd1",
     "powershell.scriptAnalysis.enable": true,
     "powershell.codeFormatting.openBraceOnSameLine": true,
     "powershell.enableProfileLoading": false,
