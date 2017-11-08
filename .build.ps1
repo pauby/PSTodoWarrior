@@ -98,7 +98,7 @@ task CodeHealth {
         $testFilename = "$($_.BaseName).Tests.ps1"
         $testPath = Join-Path -Path (Join-Path -Path "$($BuildOptions.TestsPath)" -ChildPath $type) -ChildPath $testFilename
         $results = Invoke-PSCodeHealth -Path $_ -TestsPath $testPath
-        $fails = $results.ScriptAnalyzerFindingsTotal + $results.NumberOfFailedTests 
+        $fails = $results.ScriptAnalyzerFindingsTotal + $results.NumberOfFailedTests
         assert($fails -eq 0) ("{0} failed {1} tests." -f $testPath, $fails)
     }
 }
@@ -170,8 +170,8 @@ task Build CleanBuild, BuildManifest, {
 # Synopsis: Builds the module manifest
 task BuildManifest Version, {
     # make manifest
-    $scripts = ((Get-Item "$($BuildOptions.SourcePath)\public\*.ps1").Name) | ForEach-Object { "public\$_" }
-    $scripts += ((Get-Item "$($BuildOptions.SourcePath)\private\*.ps1").Name) | ForEach-Object { "private\$_" }
+    $scripts = (Get-Item "$($BuildOptions.SourcePath)\public\*.ps1") | ForEach-Object { "public\$($_.Name)" }
+    $scripts += (Get-Item "$($BuildOptions.SourcePath)\private\*.ps1") | ForEach-Object { "private\$($_.Name)" }
     $functionsToExport = ((Get-Item "$($BuildOptions.SourcePath)\public\*.ps1").BaseName) | ForEach-Object { "$_" }
 
     New-ModuleManifest -Path "$($BuildOptions.SourcePath)\$($BuildOptions.ModuleName).psd1" @ManifestOptions `
