@@ -4,9 +4,9 @@
 .SYNOPSIS
     Imports todos from the todo file.
 .DESCRIPTION
-    Imports the todos from the todo file and then adds a line number to the todo object..
+    Imports the todos from the todo file and then adds a line number to the todo object.
 .PARAMETER Path
-    Path to the todo file. Default is TodoTaskFile from the mofule configuration.
+    Path to the todo file. Default is TodoTaskFile from the module configuration.
 .OUTPUTS
     System.ArrayList
 .EXAMPLE
@@ -19,10 +19,8 @@
     Author: Paul Broadwith (https://pauby.com)
 #>
     Param (
-        [Parameter(Mandatory = $true, Position = 0,
-            ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateScript( { Test-Path $_ } )]
-        [ValidateNotNullOrEmpty()]
         [string]$Path = $script:twSettings.TodoTaskFile
     )
 
@@ -32,6 +30,7 @@
             $count = 1
         } `
         -Process {
+            $_.PSObject.TypeNames.Insert(0, 'TWTodo')
             $_ | Add-Member -MemberType NoteProperty -Name 'Line' -Value $count -Passthru
             $count++
         }
