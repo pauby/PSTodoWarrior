@@ -28,7 +28,9 @@
     )
 
     if ($List.IsPresent) {
-        $script:twTodo = Import-TodoTxt -Path $script:twSettings.TodoTaskPath
+        $script:twTodo = Import-Todo -Path $script:twSettings.TodoTaskPath
         $script:twTodo
     }
 }
+
+Set-Alias t Use-Todo
