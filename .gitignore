@@ -17,9 +17,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-test.ps1
-test-content.txt
-todo.txt
-done.txt
-oldcode/
-ToBeDone/
+*-test*
+*.ignore
+.git
+output/
+help/
+[0-9].*/
