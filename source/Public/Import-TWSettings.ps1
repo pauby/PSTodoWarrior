@@ -1,79 +1,87 @@
 function Import-TWSettings {
     <#
     .SYNOPSIS
-    Read the settings file.
-    
+        Imports the settings file.
     .DESCRIPTION
-    Finds the TodoWarrior settings file and executes it to retrieve the settings.
-    
-    The settings file is looked for in the following locations, in order:
+        Imports the settings from the following folders, searched
+        in order:
 
-    1. Looks for a variable called TWSettingsPath and uses the path it contains;
-    2. Looks for an environment variable called TW_SETTINGS_PATH and uses the path it contains;
-    3. Looks for the filename in the user home folder (whatever the environment variable USERPROFILE points to);
-    
+            - Local directory
+            - Home directory (taken from env:USERPROFILE)
+            - env:TW_SETTINGS_PATH
+
+        If no settings file is found an exception is thrown.
     .EXAMPLE
-    Import-TWSettings
+        Import-TWSettings
 
-    Looks for the settings file
-    
+        Searches the for the settings file 'PSTodoWarrior.Settings.psd1' in the
+        local and home directories and if not found checks the filename stored
+        in env:TW_SETTINGS_PATH. Once the file is found the function imports it.
     .NOTES
-    General notes
+        Author  : Paul Broadwith (https://github.com/pauby)
+        History : 1.0 - 04/04/18 - Initial release
+                  1.1 - 09/07/18 - Renamed function;
+                                   Error message changed if settings not found;
+                                   Added parameter for settings filename;
+                                   Added parameter for settings path;
+    .LINK
+        https://github.com/pauby/pstodowarrior/tree/master/docs/Import-TWSettings.md
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'File')]
     Param (
-        # Hashtable containing the settings
-        [Parameter(ParameterSetName = 'Variable')]
-        [hashtable]
-        $Settings,
+        # Name of the settings file to look for - note that this is not a path.
+        [Parameter(ParameterSetName = 'File')]
+        [string]
+        $File = 'PSTodoWarrior.Settings.ps1',
 
-        # Full path to the settings file
+        # Path to the settings file
         [Parameter(ParameterSetName = 'Path')]
         [string]
-        $Path,
-
-        # Filename of the settings file to search the default locations for
-        [Parameter(ParameterSetName = 'Filename')]
-        [string]
-        $Filename = 'PSTodoWarriorSettings.ps1'
+        $Path
     )
 
-    if ($PSBoundParameters.ContainsKey('Settings')) {
-        $script:TWSettings = $Settings
-        return
-    }
-    elseif ($PSBoundParameters.ContainsKey('Path')) {
-        $settingsPath = $Path
-    }
-    elseif ($PSBoundParameters.ContainsKey('Filename')) {
-        Write-Verbose "No settings path explicitly specified. Using home folder."
-        $settingsPath = Join-Path -Path $env:USERPROFILE -ChildPath $Filename
+    if ($PSBoundParameters.ContainsKey('Path')) {
+        $search = $Path
     }
     else {
-        # determine which way to find the settings file 
-        if (Test-Path -Path variable:TWSettingsPath) {
-            Write-Verbose "Found session variable TWSettingsPath."
-            $settingsPath = $TWSettingsPath
+        # if we pipe $paths into the ForEach below then the break actually quits the
+        # function
+        $search = "variable:TWSettings", ".\$File", 
+            "$(Join-Path -Path $env:USERPROFILE -ChildPath $File)", 
+            $env:TW_SETTINGS_PATH
+    }
+
+    $settingsPath = ''
+    ForEach ($p in $search) {
+        if (Test-Path $p) {
+            Write-Verbose "Found settings file '$p'."
+            $settingsPath = $p
+            # break out of the ForEach
+            break 
         }
-        elseif (Test-Path -Path env:TW_SETTINGS_PATH) {
-            Write-Verbose "Found environment variable TW_SETTINGS_PATH."
-            $settingsPath = $env:TW_SETTINGS_PATH
-        } 
+    }
+
+    if ($settingsPath -ne '') {
+        # determine if this is a variable or a file we need to load from
+        if ((Split-Path -Path $settingsPath -Qualifier) -eq 'variable') {
+            Write-Verbose "Loading settings from variable 'TWSettings'."
+            $script:TWSettings = $settingsPath
+        }
         else {
-            Write-Verbose "No settings path explicitly specified. Using home folder."
-            $settingsPath = Join-Path -Path $env:USERPROFILE -ChildPath $Filename
+            Write-Verbose "Loading settings file '$settingsPath'."
+            # we cannot use the Import-PowerShellDataFile cmdlet as the settings
+            # file contains scriptblocks
+            $script:TWSettings = Invoke-Expression -Command (Get-Content -Raw -Path $settingsPath)
         }
     }
-
-    # execute the settings file
-    if (Test-Path -Path $settingsPath -PathType Leaf) {    
-        Write-Verbose "Reading settings file '$settingsPath'"
-
-        # the settings file could contain PowerShell code so we need to execute it 
-        $script:TWSettings = (& $settingsPath)
-        $script:TWSettings.SettingsPath = $settingsPath
-    }
     else {
-        throw "Cannot find settings file at $settingsPath"
+        # create paths to display in error message
+        if (@($paths).Count -gt 1) {
+            $msg = $search -join "', '"
+        }
+        else {
+            $msg = $search
+        }
+        throw "Could not find settings file at: '$msg'."
     }
 }
