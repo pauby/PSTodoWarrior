@@ -1,7 +1,4 @@
 @{
-#    TodoTaskFile        = $env:TODO_TASK;
-#    TodoDoneFile 	    = $env:TODO_DONE;
-
     TodoTaskPath        = 'todo.txt';
     TodoDonePath        = 'done.txt';
 
