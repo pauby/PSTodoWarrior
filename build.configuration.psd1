@@ -1,6 +1,6 @@
 @{
     Dependency = @(
-        @{  Name    = 'Configuration'
+        @{  Name    = 'PowerShellGet'
             Type    = 'module'
             Version = 'latest'
         },
@@ -12,6 +12,10 @@
             Type    = 'module'
             Version = 'latest'
         },
+#        @{  Name    = 'Configuration'
+#            Type    = 'module'
+#            Version = 'latest'
+#        },
         @{  Name    = 'pandoc'
             Type    = 'Chocolatey'
             Version = 'latest'
@@ -23,6 +27,16 @@
     )
 
     Testing = @{
-        CodeCoverage = 0.8
+        CodeCoverageThreshold = 0.7
+    }
+
+    ModuleScript = @{
+        Header = @"
+Set-StrictMode -Version Latest
+$script:defaultSettingsFilename = 
+
+# Import Settings
+$script:TWSettings = Import-TWSettings
+"@
     }
 }
