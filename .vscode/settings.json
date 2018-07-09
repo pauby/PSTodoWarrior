@@ -3,7 +3,7 @@
     "files.defaultLanguage": "powershell",
 
     // Powershell settings
-    "powershell.scriptAnalysis.settingsPath": "./PSScriptAnalyzerSettings.psd1",
+    "powershell.scriptAnalysis.settingsPath": "./tests/psscriptanalyzer-rules/PSScriptAnalyzerSettings.psd1",
     "powershell.scriptAnalysis.enable": true,
     "powershell.codeFormatting.openBraceOnSameLine": true,
     "powershell.enableProfileLoading": false,
@@ -12,5 +12,6 @@
     "powershell.codeFormatting.whitespaceAfterSeparator": true,
     "powershell.codeFormatting.whitespaceAroundOperator": true,
     "powershell.codeFormatting.whitespaceBeforeOpenBrace": true,
-    "powershell.codeFormatting.whitespaceBeforeOpenParen": true
+    "powershell.codeFormatting.whitespaceBeforeOpenParen": true,
+    "powershell.codeFormatting.preset": "OTBS"
 }
