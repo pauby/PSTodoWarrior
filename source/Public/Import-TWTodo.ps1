@@ -18,7 +18,7 @@
     .LINK
         https://www.github.com/pauby/pstodowarrior/tree/master/docs/import-twtodo.md
     #>
-    [OutputType([System.ArrayList])]
+    [OutputType([System.Collections.ArrayList])]
     [CmdletBinding()]
     Param (
         # Path to the todo file.
