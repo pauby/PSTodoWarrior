@@ -35,7 +35,9 @@
 
     "ModuleScript": [
         { 
-            "Header": "Set - StrictMode - Version Latest`n`n#Import Settings`n$script: TWSettings = Import - TWSettings"
+            "Header": "Set-StrictMode -Version Latest
+#Import Settings
+$script:TWSettings = Import-TWSettings"
         }
     ]
 }
