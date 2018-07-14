@@ -6,6 +6,10 @@ This is a powershell CLI to the [Todo.txt](http://todotxt.com/) todo file format
 
 The goal of this project is to create a command line interface to Todo.txt and add in some important Taskwarrior features such as prioritisation and ease of editing tasks.
 
+## TODO
+
+- [ ] Add ability to view tasks
+
 # References
 
 * The [Todo.txt Format](https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format)
