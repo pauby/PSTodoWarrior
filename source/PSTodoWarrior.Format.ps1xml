@@ -9,8 +9,8 @@
             <TableControl>
                 <TableHeaders>
                     <TableColumnHeader>
-                        <Label>L</Label>
-                        <Width>1</Width>
+                        <Label>ID</Label>
+                        <Width>3</Width>
                     </TableColumnHeader>
                     <TableColumnHeader>
                         <Label>Created</Label>
@@ -43,7 +43,7 @@
                         <Wrap/>
                         <TableColumnItems>
                             <TableColumnItem>
-                                <ScriptBlock>$fgc=[console]::ForegroundColor; [console]::ForegroundColor="green"; $_.Line; </ScriptBlock>
+                                <ScriptBlock>$fgc=[console]::ForegroundColor; [console]::ForegroundColor="green"; $_.ID; [console]::ForegroundColor=$fgc </ScriptBlock>
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>CreatedDate</PropertyName>
@@ -56,7 +56,7 @@
                             </TableColumnItem>
                             <TableColumnItem>
                                 <ScriptBlock>$_.Project -join ", "</ScriptBlock>
-                            </TableColumnItem>                            
+                            </TableColumnItem>
                             <TableColumnItem>
                                 <ScriptBlock>@(ForEach ($key in $_.Addon.keys) { "$($key):$($_.Addon.$key)" }) -join ", "</ScriptBlock>
                             </TableColumnItem>
