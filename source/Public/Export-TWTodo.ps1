@@ -24,8 +24,22 @@
 
     Write-Verbose "Exporting todos."
 
-    # first we need to strip off all of the TodoWarrior bits and export it using
-    # the Export-TodoTxt function
-    $script:TwTodo | Select-Object -ExcludeProperty Line |
-        Export-TodoTxt -Path $global:TWSettings.TodoTaskPath
+    # check if we have completed todos and autoarchiving is enabled
+    $toBeExported = $script:TWTodo      # by default ALL todos are exported to the task file
+    if ($global:TWSettings.AutoArchive -eq $true -and $global:TWSettings.TodoDonePath) {
+        Write-Verbose "Autoarchiving of completed todo(s) is enabled."
+        $completed = $script:TWTodo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $false }
+        Write-Verbose "Found $(@($completed).count) completed todo(s)."
+        if ($completed) {
+            Write-Verbose "Exporting $(@($completed).count) completed todo(s) to '$($global:TWSettings.TodoDonePath)'."
+            $completed | Export-TodoTxt -Path $global:TWSettings.TodoDonePath -Append
+        }
+
+        # remove the completed todos from our current list
+        $toBeExported = $script:TWTodo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $true }
+    }
+
+    # we dont' need to striup off any of the TodoWarrior extra fields as they
+    # will simply be ignored when exporting
+    $toBeExported | Export-TodoTxt -Path $global:TWSettings.TodoTaskPath
 }

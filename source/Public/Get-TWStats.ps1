@@ -1,5 +1,4 @@
-﻿function Get-TWStats
-{
+﻿function Get-TWStats {
     <#
     .SYNOPSIS
         Imports todos from the todo file.
@@ -20,14 +19,20 @@
     #>
     [OutputType([PSCustomObject])]
     [CmdletBinding()]
-    Param ()
+    Param (
+        [PSObject]
+        $Output
+    )
 
     Write-Verbose "Gathering stats on the todos."
 
     $stats = @{
-        Completed = @($script:TWTodo | Where { [string]::IsNullOrEmpty($_.DoneDate) -eq $false}).count
+        Completed   = @($Output | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $false}).count
+        Overdue     = @($Output | Where-Object { $_.addon.keys -contains 'due' } | Where-Object { (Get-Date -Date $_.addon.due) -lt (Get-Date) }).count
+        DueToday  = @($Output | Where-Object { $_.addon.keys -contains 'due' } | Where-Object { $_.addon.due -eq (get-date -format 'yyyy-MM-dd') }).count
+        DueTomorrow = @($Output | Where-Object { $_.add.keys -contains 'due' } | Where-Object { $_.addon.due -eq (Get-Date -Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd') }).count
     }
 
     [PSCustomObject]$stats
-#    New-Object -TypeName PSObject -Property $stats
+    #    New-Object -TypeName PSObject -Property $stats
 }
