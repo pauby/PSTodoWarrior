@@ -88,7 +88,7 @@
             }
         }
 
-        Write-Verbose "Filterinf out duplicates complete - we have $(@($filteredTodo).count)."
+        Write-Verbose "Filtering out duplicates complete - we have $(@($filteredTodo).count)."
     }
 
     # using round brackets around switch scriptblocks to make it easier to read
