@@ -13,7 +13,7 @@
 
     Adds a new todo.
 .EXAMPLE
-    Use-TWTodo remove 15
+    Use-TWTodo -Remove 15
 
     Removes the todo at line 15.
 .LINK
@@ -54,6 +54,9 @@
         [array]
         $Filter
     )
+
+    # Import the settings
+    Import-TWSettings
 
     Import-TWTodo
     $filteredTodo = $script:TWTodo
