@@ -46,12 +46,13 @@ function Import-TWSettings {
     else {
         # if we pipe $paths into the ForEach below then the break actually quits the
         # function
-        $search = "variable:TWSettings", ".\$File", 
-            "$(Join-Path -Path $env:USERPROFILE -ChildPath $File)", 
-            $env:TW_SETTINGS_PATH
+        $search = Join-Path -Path $home -ChildPath $File
+        if (Test-Path -Path env:TW_SETTINGS_PATH) {
+            $search += $env:TW_SETTINGS_PATH
+        }
     }
 
-    $settingsPath = ''
+    $settingsPath = $null
     ForEach ($p in $search) {
         if (Test-Path $p) {
             Write-Verbose "Found settings file '$p'."
@@ -61,7 +62,7 @@ function Import-TWSettings {
         }
     }
 
-    if ($settingsPath -ne '') {
+    if ($null -ne $settingsPath) {
         # determine if this is a variable or a file we need to load from
         if ((Split-Path -Path $settingsPath -Qualifier) -eq 'variable') {
             Write-Verbose "Loading settings from variable 'TWSettings'."
@@ -76,12 +77,6 @@ function Import-TWSettings {
     }
     else {
         # create paths to display in error message
-        if (@($paths).Count -gt 1) {
-            $msg = $search -join "', '"
-        }
-        else {
-            $msg = $search
-        }
-        throw "Could not find settings file at: '$msg'."
+        throw ("Could not find settings file at: '{0}'." -f ($search -join ", "))
     }
 }
