@@ -1,15 +1,40 @@
 Import-Module PowerShellBuild -force
 . PowerShellBuild.IB.Tasks
 
+# at the top of the PSM1 file this has to go in there
+
+# this needs to go at the end
+
+
 $PSBPreference.Build.CompileModule = $true
+$PSBPreference.Build.CompileHeader = "Set-StrictMode -Version Latest`n"
+$PSBPreference.Build.CompileFooter = "`nSet-Alias t Use-Todo"
 # $PSBPreference.Build.Dependencies                           = 'StageFiles', 'BuildHelp'
 $PSBPreference.Test.Enabled = $true
 $PSBPreference.Test.CodeCoverage.Enabled = $true
 $PSBPreference.Test.CodeCoverage.Threshold = 0.75
 $PSBPreference.Test.CodeCoverage.Files =
-(Join-Path -Path $PSBPreference.Build.ModuleOutDir -ChildPath "*.psm1")
+    (Join-Path -Path $PSBPreference.Build.ModuleOutDir -ChildPath "*.psm1")
 $PSBPreference.Test.ScriptAnalysis.Enabled = $true
 $PSBPreference.Test.ScriptAnalysis.FailBuildOnSeverityLevel = 'Error'
+
+function Import-PTHBuildModule {
+    [CmdletBinding()]
+    Param ()
+
+    # build the filename
+    $moduleScript = "{0}\{1}.psm1" -f $PSBPreference.Test.OutputPath, $PSBPreference.General.ModuleName
+    if (Test-Path -Path $moduleScript) {
+        Remove-Module -Name $moduleScript -ErrorAction SilentlyContinue
+        Import-Module -Name $moduleScript -Force -ErrorAction Stop
+
+        $importedModule = Get-Module -Name $env:BHProjectName
+        Write-Verbose "Imported module '$($importedModule.Path)'"
+    }
+    else {
+        throw "Module manifest '$moduleScript' does not exist!"
+    }
+}
 
 task LocalDeploy {
     $sourcePath = $PSBPreference.Build.ModuleOutDir
@@ -22,20 +47,12 @@ task LocalDeploy {
     Copy-Item -Path $sourcePath -Destination $destPath -Recurse -Force
 }
 
-$moduleVersion = (Get-Module -Name PowerShellBuild -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1).Version
-if ($moduleVersion -le [version]"0.3.0") {
-    task Build {
-        #Write-Host "Setting env"
-        #[Environment]::SetEnvironmentVariable("BHBuildOutput", $PSBPreference.Build.ModuleOutDir, "machine")
-    }, StageFiles, BuildHelp
+Task Clean Init, {
+    Clear-PSBuildOutputFolder -Path $PSBPreference.Build.ModuleOutDir
 
-    task Init {
-        Initialize-PSBuild
-        Set-BuildEnvironment -BuildOutput $PSBPreference.Build.ModuleOutDir -Force
-        $nl = [System.Environment]::NewLine
-        "$nl`Environment variables:"
-        (Get-Item ENV:BH*).Foreach( {
-                '{0,-20}{1}' -f $_.name, $_.value
-            })
-    }
+    # Remove docs folder
+    Remove-Item -Path $PSBPreference.Docs.RootDir -Recurse -Force -ErrorAction SilentlyContinue
 }
+
+Task Build StageFiles, BuildHelp
+Task Test Pester
