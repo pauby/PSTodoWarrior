@@ -25,11 +25,7 @@
         # Default is TodoTaskFile from the module configuration.
         [Parameter(Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string]
-        $Todo,
-
-        # Returns the TWTodo object created
-        [switch]
-        $PassThru
+        $Todo
     )
 
     #TODO Look at adding parameters for each component of the Todo - priority, createddate, donedate etc.
@@ -45,7 +41,5 @@
     # add the new TWTodo object to the todo list
     $null = $script:TWTodo.Add($obj)
 
-    if ($PassThru.IsPresent) {
-        $obj
-    }
+    $obj
 }
