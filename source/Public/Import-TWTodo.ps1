@@ -22,15 +22,14 @@
         # Path to the todo file.
         # Default is TodoTaskFile from the module configuration.
         [Parameter(Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [ValidateScript( { Test-Path $_ } )]
         [string]
-        $Path = ((Get-TWSettings).TodoTaskPath)
+        $Path = ((Get-TWConfiguration).TodoTaskPath)
     )
 
-    Write-Verbose "Checking that todo file '$($Path)' exists."
     If (Test-Path -Path $Path) {
-        Write-Verbose "Importing todos and adding an ID number to each."
-        [System.Collections.ArrayList]$script:TWTodo = Import-TodoTxt -Path $Path | ForEach-Object `
+        Write-Verbose "Found Todo file at '$Path'."
+        Write-Verbose "Importing todos, adding the 'TWTodo' type and adding an ID number to each."
+        [System.Collections.ArrayList]$todo = Import-TodoTxt -Path $Path | ForEach-Object `
         -Begin {
             $count = 1
         } `
@@ -41,8 +40,8 @@
         }
     }
     else {
-        Write-Error "Todo file '$($Path) does not exist!"
+        Write-Error "Could not find '$($Path)'."
     }
 
-    $script:TWTodo
+    $todo
 }
