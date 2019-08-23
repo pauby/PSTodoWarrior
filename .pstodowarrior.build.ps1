@@ -7,8 +7,8 @@ Import-Module PowerShellBuild -force
 
 
 $PSBPreference.Build.CompileModule = $true
-$PSBPreference.Build.CompileHeader = "Set-StrictMode -Version Latest`n"
-$PSBPreference.Build.CompileFooter = "`nSet-Alias t Use-Todo"
+# $PSBPreference.Build.CompileHeader = "Set-StrictMode -Version Latest`n"
+# $PSBPreference.Build.CompileFooter = "`nSet-Alias t Use-Todo"
 # $PSBPreference.Build.Dependencies                           = 'StageFiles', 'BuildHelp'
 $PSBPreference.Test.Enabled = $true
 $PSBPreference.Test.CodeCoverage.Enabled = $true
