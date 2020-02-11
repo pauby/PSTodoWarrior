@@ -5,7 +5,7 @@ Param (
     # skips the initialization of the environment, which can be slow, and jumps
     # straight to the build script
     [switch]
-    $SkipInit
+    $Bootstrap
 )
 
 function Test-Administrator {
@@ -18,7 +18,7 @@ function Test-Administrator {
     }
 }
 
-if (-not $SkipInit.IsPresent) {
+if ($Bootstrap.IsPresent) {
 
     $dependencies = @{
         InvokeBuild         = 'latest'
