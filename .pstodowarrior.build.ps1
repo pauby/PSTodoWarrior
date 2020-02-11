@@ -12,7 +12,7 @@ $PSBPreference.Build.CompileModule = $true
 # $PSBPreference.Build.Dependencies                           = 'StageFiles', 'BuildHelp'
 $PSBPreference.Test.Enabled = $true
 $PSBPreference.Test.CodeCoverage.Enabled = $true
-$PSBPreference.Test.CodeCoverage.Threshold = 0.75
+$PSBPreference.Test.CodeCoverage.Threshold = 0.0    # chance to 0.70 once we have more tests
 $PSBPreference.Test.CodeCoverage.Files =
     (Join-Path -Path $PSBPreference.Build.ModuleOutDir -ChildPath "*.psm1")
 $PSBPreference.Test.ScriptAnalysis.Enabled = $true
