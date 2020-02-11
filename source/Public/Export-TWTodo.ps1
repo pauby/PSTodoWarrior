@@ -20,26 +20,35 @@
     #>
     [OutputType([System.Collections.ArrayList])]
     [CmdletBinding()]
-    Param ()
+    Param (
+        [System.Collections.ArrayList]
+        $Todo
+    )
+
+    # get the config
+    $config = Get-TWConfiguration
 
     Write-Verbose "Exporting todos."
 
     # check if we have completed todos and autoarchiving is enabled
-    $toBeExported = $script:TWTodo      # by default ALL todos are exported to the task file
-    if ($global:TWSettings.AutoArchive -eq $true -and $global:TWSettings.TodoDonePath) {
+    $toBeExported = $Todo      # by default ALL todos are exported to the task file
+    if ($config.AutoArchive -eq $true -and $config.TodoDonePath) {
         Write-Verbose "Autoarchiving of completed todo(s) is enabled."
-        $completed = $script:TWTodo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $false }
+        $completed = $Todo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $false }
         Write-Verbose "Found $(@($completed).count) completed todo(s)."
+
+        # if we have todos that have a completed value then export them to the done file
         if ($completed) {
-            Write-Verbose "Exporting $(@($completed).count) completed todo(s) to '$($global:TWSettings.TodoDonePath)'."
-            $completed | Export-TodoTxt -Path $global:TWSettings.TodoDonePath -Append
+            Write-Verbose "Exporting $(@($completed).count) completed todo(s) to '$($config.TodoDonePath)'."
+            $completed | Export-TodoTxt -Path $config.TodoDonePath -Append
         }
 
         # remove the completed todos from our current list
-        $toBeExported = $script:TWTodo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $true }
+        $toBeExported = $Todo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $true }
     }
 
     # we dont' need to striup off any of the TodoWarrior extra fields as they
     # will simply be ignored when exporting
-    $toBeExported | Export-TodoTxt -Path $global:TWSettings.TodoTaskPath
+    Write-Verbose "Exporting $(@($toBeExported).count) todo(s) to '$($config.TodoTaskPath)'."
+    $toBeExported | Export-TodoTxt -Path $config.TodoTaskPath
 }
