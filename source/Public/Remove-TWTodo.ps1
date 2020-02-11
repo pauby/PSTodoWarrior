@@ -21,33 +21,24 @@
     [OutputType([System.Collections.ArrayList])]
     [CmdletBinding()]
     Param (
-        # The todo ID number to remove.
-        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [int32[]]
-        $ID,
+        [Parameter(Mandatory, Position = 0)]
+        [System.Collections.ArrayList]
+        $Todo,
 
-        # Returns the TWTodo object created
-        [switch]
-        $PassThru
+        # The todo ID number to remove.
+        [Parameter(Mandatory, Position = 1, ValueFromPipelineByPropertyName)]
+        [int32[]]
+        $ID
     )
 
-    Begin {
-        # initiaoise the list we will use to capture the ID's
-        $list = @()
-    }
+    Begin { }
 
-    Process {
-        # in order top sort the list BEFORE we do anything with it we need to
-        # capture all the ID's
-        ForEach ($i in $ID) {
-            # check we don't already have the ID - removes duplicates
-            if ($list -notcontains $i) {
-                $list += $i
-            }
-        }
-    }
+    Process { }
 
-    end {
+    End {
+        $list = $ID | Select-Object -Unique
+        Write-Verbose ("Created unique list of ID''s to remove: {0}" -f ($list -join ','))
+
         # if we delete the higher items first it doesn't affect the numbering below so always sort the numbers first
         $list = $list | Sort-Object -Descending
         ForEach ($item in $list) {
@@ -55,14 +46,10 @@
 
             # remember the array is zero based but the user sees the ID's starting from
             # 1 so -1 from what the user sees.
-            $script:TWTodo[$item -1]    # display what you're about to delete
-            $script:TWTodo.RemoveAt($item - 1)
+            $Todo.RemoveAt($item - 1)
         }
 
-        Export-TWTodo
-
-        if ($PassThru.IsPresent) {
-            $script:TWTodo
-        }
+        # we only output the todo(s) removed
+        Export-TWTodo -Todo $Todo
     }
 }
