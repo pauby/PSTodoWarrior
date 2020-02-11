@@ -7,7 +7,6 @@ function Write-TWHost {
     )
 
     $settings = Get-TWConfiguration
-    $settings
 
     if (-not $settings.DisableWriteHostUse) {
         Write-Host @Arguments
