@@ -21,9 +21,6 @@
 .NOTES
     Author: Paul Broadwith (https://pauby.com)
     Project: PSTodoWarrior (https://github.com/pauby/pstodowarrior)
-    History: 1.0 - unknown  - Initial release
-             1.1 - 09/07/18 - Renamed function
-             1.2 - 16/07/18 - Added Add functionality; Refactored code
 #>
     [CmdletBinding(DefaultParameterSetName = 'List')]
     Param (
@@ -56,30 +53,37 @@
     )
 
     # Import the settings
-    Import-TWSettings
+    $settings = Get-TWConfiguration
 
-    Import-TWTodo
+    # import the todos
+    $script:TWTodo = Import-TWTodo
+
+    # if the user has given us a filter, then filter the todos
     $filteredTodo = $script:TWTodo
     if ($PSBoundParameters.Keys.Contains('Filter')) {
-        Write-Verbose "Filtering the todo(s)."
+        Write-Verbose "Filtering the todo(s). Filter is '$Filter'."
+
         $filteredTodo = @()
-        foreach ($f in $Filter) {
+        ForEach ($f in $Filter) {
+            # go through the filter and check what we have
             if ($f -is [int]) {
-                Write-Verbose "Filter: Found an id '$f'"
-                $filteredTodo += $script:TWTodo | where id -eq $f
-            } elseif ($f.StartsWith('@')) {
+                Write-Verbose "Filter: Found an id '$f'."
+                $filteredTodo += $script:TWTodo | Where-Object {$_.id -eq $f }
+            }
+            elseif ($f.StartsWith('@')) {
                 Write-Verbose "Filter: Found a context '$($f.SubString(1))'"
                 # skip over the '@' when checking for the context
-                $filteredTodo += $script:TWTodo | where context -contains $f.SubString(1)
-            } elseif ($f.StartsWith('+')) {
+                $filteredTodo += $script:TWTodo | Where-Object { $_.context -contains $f.SubString(1) }
+            }
+            elseif ($f.StartsWith('+')) {
                 Write-Verbose "Filter: Found a project '$($f.SubString(1))'"
                 # skip over the '+' when checking for the project
-                $filteredTodo += $script:TWTodo | where project -contains $f.SubString(1)
+                $filteredTodo += $script:TWTodo | Where-Object { $_.project -contains $f.SubString(1) }
             }
         }
 
         # filter out the duplicates
-        Write-Verbose "Filtering out the duplicates - we have $(@($filteredTodo).count)."
+        Write-Verbose "Filtering out the duplicates starting - we have $(@($filteredTodo).count)."
         $found = @()
         $filteredTodo = $filteredTodo | ForEach-Object {
             # check if we have the ID in our list
@@ -99,9 +103,10 @@
     if ($PSBoundParameters.Keys.Contains('Add')) {
         # import the todos again in case anything has changed, add the new todo
         # and then export them (as we have made a change)
-        Import-TWTodo
-        $Add | Add-TWTodo
-        Export-TWTodo
+        $script:TWTodo = Import-TWTodo
+
+        # this will output the Todo's added
+        $Add | Add-TWTodo -TodoList $script:TWTodo
     }
     elseif ($PSBoundParameters.Keys.Contains('Remove')) {
         # the user is basing their removal on what they last saw so don't re-read the todolist in case it has changed
@@ -109,11 +114,17 @@
         #TODO we need to put some mechanism in here for alerting the user if
         #TODO things have changed since the last import - for example a hash of the
         #TODO todo file
-        $filteredTodo | Remove-TWTodo
+        $newTodoList = $filteredTodo | Remove-TWTodo -Todo $script:TWTodo
+        $removed = $script:TWTodo | Where-Object { $_ -notin $newTodoList }
+        $removed
+        Write-TWHost "Removed $(@(removed).count) todo(s)."
+
+        $script:TWTodo = $newTodoList
     }
     elseif ($PSBoundParameters.Keys.Contains('Complete')) {
         # complete a todo by setting the DoneDate
         $doneDate = Get-Date -Format "yyyy-MM-dd"       #TODO this was taken straight Get-TodoTxtTodaysDate - consider making that function public and use it instead
+        Write-TWHost "Marked todo's completed with date '$doneDate':"
         $filteredTodo | Set-TodoTxt -DoneDate $doneDate
         Export-TWTodo
     }
@@ -129,7 +140,7 @@
         }
 
         # import the todos and then show them - simples!
-        if ($global:TWSettings.View.Keys -contains $View) {
+        if ($settings.View.Keys -contains $View) {
             Write-Verbose "Found View '$View' in settings."
             $output = $filteredTodo | & $global:TWSettings.View.$View
         }
