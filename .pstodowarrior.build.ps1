@@ -1,15 +1,15 @@
 Import-Module PowerShellBuild -force
 . PowerShellBuild.IB.Tasks
 
-# OutDir defaults to 'Output' (note capital 'O'). The folder is actually 
-# 'output' (note lowercase 'o'). This makes no difference on Windows but on 
+# OutDir defaults to 'Output' (note capital 'O'). The folder is actually
+# 'output' (note lowercase 'o'). This makes no difference on Windows but on
 # Docker Linux it doesn't find the path, tries to create it and fails.
 $PSBPreference.Build.OutDir =
     Join-Path -Path $PSBPreference.General.ProjectRoot -ChildPath "output"
-$PSBPreference.Build.ModuleOutDir = 
+$PSBPreference.Build.ModuleOutDir =
     Join-Path `
         -Path $PSBPreference.Build.OutDir `
-        -ChildPath ("{0}{1}{2}" -f 
+        -ChildPath ("{0}{1}{2}" -f
             $PSBPreference.General.ModuleName,
             [IO.Path]::DirectorySeparatorChar,
             $PSBPreference.General.ModuleVersion)
