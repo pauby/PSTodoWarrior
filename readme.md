@@ -25,7 +25,7 @@ $TWSettings = [pscustomobject]@{
 
     # Backups
     # backups are stored in the same folder as the TodoTaskFile
-    BackupFolder        = 'backups'
+    BackupPath          = 'backups'
     # Number of backups to keep in the BackupFolder
     BackupDaysToKeep    = 7
 
