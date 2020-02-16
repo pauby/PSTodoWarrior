@@ -5,14 +5,27 @@ Describe "Function Testing - $functionName" {
 
     InModuleScope -ModuleName PSTodoWarrior {
 
-        $todo = @( [pscustomobject]@{ task = "Luke"; donedate = "20190201"}, [pscustomobject]@{ task = "Han"} )
+        $todo = @( [pscustomobject]@{ task = "Luke"; donedate = "2019-02-01"}, [pscustomobject]@{ task = "Han"} )
+        Mock -ModuleName PSTodoWarrior `
+            -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = 'TestDrive:\todo.txt'; AutoArchive = $true } }
+
+        Context 'testing parameters' {
+            it 'should throw if the todo list is null' {
+                { Export-TWTodo -Todo $null } | Should -Throw
+            }
+
+            it 'should not throw if the todo list is empty' {
+                { Export-TWTodo -Todo @() } | Should -Not -Throw
+            }
+        }
 
         Context 'testing AutoArchive setting' {
+            Mock -CommandName Write-Verbose { } -Verifiable
+            Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { }
+
             It 'should export completed todos to the TodoDonePath when AutoArchive is $true' {
                 Mock -ModuleName PSTodoWarrior `
                     -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = 'TestDrive:\todo.txt'; AutoArchive = $true } }
-                Mock -CommandName Write-Verbose {} -Verifiable
-                Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt {}
 
                 Export-TWTodo -Todo $todo -Verbose
                 Assert-MockCalled -CommandName Write-Verbose -Exactly 5 -Scope It
@@ -21,8 +34,6 @@ Describe "Function Testing - $functionName" {
             It 'should export all todos to TodoTaskPath when AutoArchive is $false' {
                 Mock -ModuleName PSTodoWarrior `
                     -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = 'TestDrive:\todo.txt'; AutoArchive = $false } }
-                Mock -CommandName Write-Verbose { } -Verifiable
-                Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { }
 
                 Export-TWTodo -Todo $todo -Verbose
                 Assert-MockCalled -CommandName Write-Verbose -Exactly 2 -Scope It
@@ -31,11 +42,25 @@ Describe "Function Testing - $functionName" {
             It 'should export all todos to TodoTaskPath when AutoArchive is missing' {
                 Mock -ModuleName PSTodoWarrior `
                     -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = 'TestDrive:\todo.txt' } }
-                Mock -CommandName Write-Verbose { } -Verifiable
-                Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { }
 
                 Export-TWTodo -Todo $todo -Verbose
                 Assert-MockCalled -CommandName Write-Verbose -Exactly 2 -Scope It
+            }
+        }
+
+        Context 'testing AutoArchive setting' {
+            it 'should empty the backup file if the last todo is completed and AutoArchive is on' {
+                $donePath = 'TestDrive:\done.txt'
+                $taskPath = 'TestDrive:\todo.txt'
+                Mock -ModuleName PSTodoWarrior `
+                    -CommandName Get-TWConfiguration { @{ TodoDonePath = $donePath; TodoTaskPath = $taskPath; AutoArchive = $true } }
+
+                { Export-TWTodo -Todo @( [pscustomobject]@{ task = "Luke"; createddate = "2019-09-09"; donedate = "2019-10-01" } ) } | Should -Not -Throw
+                $file = Get-ChildItem -Path $taskPath
+                $file.Length | Should -Be 2     # empty files have some length
+
+                $file = Get-ChildItem -Path $donePath
+                $file.Length | Should -Be 30    # this is the size on windows - may fail on ohter OS
             }
         }
 
@@ -89,12 +114,15 @@ Describe "Function Testing - $functionName" {
 
         Context 'testing BackupPath being set and the export failing' {
 
+            $todoTaskPath = 'TestDrive:\todo.txt'
+            $todoDonePath = 'TestDrive:\done.txt'
+            $formattedDate = Get-Date -Format 'yyyymmdd'
+            Mock -ModuleName PSTodoWarrior `
+                -CommandName Get-TWConfiguration { @{ TodoDonePath = $todoDonePath; TodoTaskPath = $todoTaskPath; } }
+
+            Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { throw }    # fail the export
+
             it 'should leave the backup file if the export fails' {
-                $todoTaskPath = 'TestDrive:\todo.txt'
-                $formattedDate = Get-Date -Format 'yyyymmdd'
-                Mock -ModuleName PSTodoWarrior `
-                    -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = $todoTaskPath; } }
-                Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { throw }    # fail the export
                 Set-Content -Path $todoTaskPath -Value "abcdefg"        # the backup is only created if the todo file exists
 
                 { Export-TWTodo -Todo $todo } | Should -Throw
