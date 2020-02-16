@@ -57,6 +57,30 @@
             $todoTaskPathParent = Split-Path -Path $config.TodoTaskPath -Parent
             $backupPath = Join-Path -Path $todoTaskPathParent -ChildPath $backupFilename
         }
+        $backupPath = Join-Path -Path $config.BackupPath -ChildPath $backupFilename
+    }
+    else {
+        $backupPath = Join-Path -Path $taskPath -ChildPath $backupFilename
+    }
+
+    # make a copy of the todo file
+    try {
+        Write-Verbose "Trying to make a copy of the todo file '$($config.TodoTaskPath)' to '$backupPath'."
+        Copy-Item -Path $config.TodoTaskPath -Destination $backupPath
+    }
+    catch {
+        throw "Before modifying the todo file '$($config.TodoTaskPath)' I tried to make a copy to '$backupPath' but I failed."
+    }
+
+    Write-Verbose "Going to export todos."
+
+    try {
+        # check if we have completed todos and autoarchiving is enabled
+        $toBeExported = $Todo      # by default ALL todos are exported to the task file
+        if ($config.AutoArchive -eq $true -and $config.TodoDonePath) {
+            Write-Verbose "Autoarchiving of completed todo(s) is enabled."
+            $completed = $Todo | Where-Object { [string]::IsNullOrEmpty($_.DoneDate) -eq $false }
+            Write-Verbose "Found $(@($completed).count) completed todo(s)."
 
         Write-Verbose "Backup of todo file will be created at '$backupPath'"
 
