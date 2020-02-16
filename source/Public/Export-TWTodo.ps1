@@ -28,34 +28,46 @@
     # get the config
     $config = Get-TWConfiguration
 
-    # determine if there is a configuration for backing up the todo file before
-    # we modify it - if not, still back it up and remove it when we are finished
-    $backupFilename = "{0}-{1}" -f (Get-Date -Format "yyyymmdd-HHMMss"), (Split-Path -Path $config.TodoTaskPath -Leaf)
-    if ($config.BackupPath) {
-        # before we do anything check that the pathfor the backups exists
-        if (-not (Test-Path -Path $config.BackupPath)) {
-            # path does not exist so lets try and create it
-            try {
-                Write-Verbose "The 'BackupPath' given in the configuration does not exist. Trying to create '$($config.BackupPath)'."
-                New-Item -Path $config.BackupPath -ItemType Directory -Force
-            }
-            catch {
-                throw "Path '$($config.BackupPath)' does not exist. Tried to create it but failed."
-            }
-        }
-        $backupPath = Join-Path -Path $config.BackupPath -ChildPath $backupFilename
-    }
-    else {
-        $backupPath = Join-Path -Path $taskPath -ChildPath $backupFilename
-    }
+    # check there is a todo file before we try and back it up!
+    $todoFileExisted = $false
+    if (Test-Path -Path $config.TodoTaskPath) {
+        $todoFileExisted = $true
 
-    # make a copy of the todo file
-    try {
-        Write-Verbose "Trying to make a copy of the todo file '$($config.TodoTaskPath)' to '$backupPath'."
-        Copy-Item -Path $config.TodoTaskPath -Destination $backupPath
-    }
-    catch {
-        throw "Before modifying the todo file '$($config.TodoTaskPath)' I tried to make a copy to '$backupPath' but I failed."
+        # determine if there is a configuration for backing up the todo file before
+        # we modify it - if not, still back it up and remove it when we are finished
+        $backupFilename = "{0}-{1}" -f (Get-Date -Format "yyyymmdd-HHMMss"), (Split-Path -Path $config.TodoTaskPath -Leaf)
+        if ($config.BackupPath) {
+            # before we do anything check that the path for the backups exists
+            if (-not (Test-Path -Path $config.BackupPath)) {
+                # path does not exist so lets try and create it
+                try {
+                    Write-Verbose "The 'BackupPath' given in the configuration does not exist. Trying to create '$($config.BackupPath)'."
+                    New-Item -Path $config.BackupPath -ItemType Directory -Force -ErrorAction Stop
+                    Write-Verbose "we created this"
+                }
+                catch {
+                    throw "Path '$($config.BackupPath)' does not exist. Tried to create it but failed."
+                }
+            }
+
+            $backupPath = Join-Path -Path $config.BackupPath -ChildPath $backupFilename
+        }
+        else {
+            # we have no defined backup path but we still need to backup the file before modifying it - use the todo task path
+            $todoTaskPathParent = Split-Path -Path $config.TodoTaskPath -Parent
+            $backupPath = Join-Path -Path $todoTaskPathParent -ChildPath $backupFilename
+        }
+
+        Write-Verbose "Backup of todo file will be created at '$backupPath'"
+
+        # make a copy of the todo file
+        try {
+            Write-Verbose "Trying to make a copy of the todo file '$($config.TodoTaskPath)' to '$backupPath'."
+            Copy-Item -Path $config.TodoTaskPath -Destination $backupPath
+        }
+        catch {
+            throw "Before modifying the todo file '$($config.TodoTaskPath)' I tried to make a copy to '$backupPath' but I failed."
+        }
     }
 
     Write-Verbose "Going to export todos."
@@ -88,7 +100,9 @@
         throw "There was an error exporting to the todo file '$($config.TodoTaskPath)'. A backup was made beforehand and it is at '$backupPath' which you can use if the todo file is in an inconsistent state."
     }
 
-    if (-not $config.BackupPath) {
+    # if we don't have a backup folder specified AND if the todo file actually existed then remove the temporary file
+    # we created before modifying the original todo file
+    if (-not $config.BackupPath -and $todoFileExisted) {
         Write-Verbose "Everything went okay with the export so removing the todo backup file '$backupPath'."
         try {
             Remove-Item -Path $backupPath
