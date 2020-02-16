@@ -126,7 +126,7 @@
         $doneDate = Get-Date -Format "yyyy-MM-dd"       #TODO this was taken straight Get-TodoTxtTodaysDate - consider making that function public and use it instead
         Write-TWHost "Marked todo's completed with date '$doneDate':"
         $filteredTodo | Set-TodoTxt -DoneDate $doneDate
-        Export-TWTodo
+        Export-TWTodo -Todo $script:TWTodo
     }
     else {
         # if we get here we have either not passed any of the 'command'
