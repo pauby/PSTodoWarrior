@@ -1,16 +1,24 @@
 Import-Module PowerShellBuild -force
 . PowerShellBuild.IB.Tasks
 
-# at the top of the PSM1 file this has to go in there
-
-# this needs to go at the end
-
-
+# OutDir defaults to 'Output' (note capital 'O'). The folder is actually 
+# 'output' (note lowercase 'o'). This makes no difference on Windows but on 
+# Docker Linux it doesn't find the path, tries to create it and fails.
+$PSBPreference.Build.OutDir =
+    Join-Path -Path $PSBPreference.General.ProjectRoot -ChildPath "output"
+$PSBPreference.Build.ModuleOutDir = 
+    Join-Path `
+        -Path $PSBPreference.Build.OutDir `
+        -ChildPath ("{0}{1}{2}" -f 
+            $PSBPreference.General.ModuleName,
+            [IO.Path]::DirectorySeparatorChar,
+            $PSBPreference.General.ModuleVersion)
 $PSBPreference.Build.CompileModule = $true
 # $PSBPreference.Build.CompileHeader = "Set-StrictMode -Version Latest`n"
 # $PSBPreference.Build.CompileFooter = "`nSet-Alias t Use-Todo"
 # $PSBPreference.Build.Dependencies                           = 'StageFiles', 'BuildHelp'
 $PSBPreference.Test.Enabled = $true
+$PSBPreference.Test.RootDir = Join-Path -Path $PSBPreference.General.ProjectRoot -ChildPath "Tests"
 $PSBPreference.Test.CodeCoverage.Enabled = $true
 $PSBPreference.Test.CodeCoverage.Threshold = 0.0    # chance to 0.70 once we have more tests
 $PSBPreference.Test.CodeCoverage.Files =
