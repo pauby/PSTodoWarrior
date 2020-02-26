@@ -124,7 +124,6 @@
     elseif ($PSBoundParameters.Keys.Contains('Complete')) {
         # complete a todo by setting the DoneDate
         $doneDate = Get-Date -Format "yyyy-MM-dd"       #TODO this was taken straight Get-TodoTxtTodaysDate - consider making that function public and use it instead
-        Write-TWHost "Marked todo's completed with date '$doneDate':"
         $filteredTodo | Set-TodoTxt -DoneDate $doneDate
         Export-TWTodo -Todo $script:TWTodo
     }
