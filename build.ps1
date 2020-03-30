@@ -1,6 +1,6 @@
 [CmdletBinding()]
 Param (
-    $Task = 'build',
+    $Task = 'test',
 
     # skips the initialization of the environment, which can be slow, and jumps
     # straight to the build script
@@ -45,6 +45,18 @@ if ($Bootstrap.IsPresent) {
     if ((Get-PSRepository -Name PSGallery).InstallationPolicy -ne 'Trusted') {
         Write-Verbose "Trusting PowerShellGallery."
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+    }
+
+    # install Chocolatey and apps if this is the Desktop edition or Core on Windows
+    if ($PSVersionTable.PSEdition -eq 'Desktop' -or
+        ($PSVersionTable.PSEdition -eq 'Core' -and $PSVersionTable.Platform -eq 'Win32NT') -and
+        (-not (Get-Command -Name 'choco.exe' -ErrorAction SilentlyContinue))) {
+        # install Chocolatey
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        Import-Module C:\ProgramData\chocolatey\helpers\chocolateyProfile.psm1
+        refreshenv
+
+        choco.exe install git -y
     }
 
     Install-Module -Name PSDepend
