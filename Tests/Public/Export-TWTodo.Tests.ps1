@@ -64,7 +64,7 @@ Describe "Function Testing - $functionName" {
             }
         }
 
-        Context 'testing BackupPath setting being defined' {
+        Context 'testing AutoArchive being $true and BackupFolder being defined' {
 
             Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { }
 
@@ -73,8 +73,20 @@ Describe "Function Testing - $functionName" {
             #! mocked New-Item
             it 'should throw an exception if it cannot create the backup path' {
                 $todoTaskPath = 'TestDrive:\todo.txt'
-                Mock -ModuleName PSTodoWarrior `
-                    -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = $todoTaskPath; BackupPath = '\\someremoteurl\fakepath\backups'; BackupDaysToKeep = 7 } }
+                $backupPath = '\\someremoteurl\fakepath\backups'
+                Mock -ModuleName PSTodoWarrior -CommandName Get-TWBackupPath {
+                    "{0}\20200320-101112-todo.txt" -f $backupPath
+                }
+
+                Mock -ModuleName PSTodoWarrior -CommandName Get-TWConfiguration {
+                    @{
+                        TodoDonePath = 'TestDrive:\done.txt'
+                        TodoTaskPath = $todoTaskPath
+                        AutoArchive = $true
+                        BackupPath = '\\someremoteurl\fakepath\backups'
+                        BackupDaysToKeep = 7
+                    }
+                }
 
                 Set-Content -Path $todoTaskPath -Value "abcdefg"
                 { Export-TWTodo -Todo $todo } | Should -Throw 'does not exist'
@@ -82,51 +94,94 @@ Describe "Function Testing - $functionName" {
 
             it 'should try to create the backup path if it does not exist' {
                 $todoTaskPath = 'TestDrive:\todo.txt'
-                Mock -ModuleName PSTodoWarrior `
-                    -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = $todoTaskPath; BackupPath = 'TestDrive:\backups'; BackupDaysToKeep = 7 } }
+                $backupPath = 'TestDrive:\backups'
+                Mock -ModuleName PSTodoWarrior -Verifiable -CommandName Get-TWBackupPath {
+                    "{0}\20200320-101010-todo.txt" -f $backupPath
+                }
+
+                Mock -ModuleName PSTodoWarrior -Verifiable -CommandName Get-TWConfiguration {
+                    @{
+                        TodoDonePath = 'TestDrive:\done.txt'
+                        TodoTaskPath = $todoTaskPath
+                        AutoArchive = $true
+                        BackupPath = $backupPath
+                        BackupDaysToKeep = 7
+                    }
+                }
                 Mock -CommandName New-Item {} -Verifiable
                 Mock -CommandName Copy-Item {} -Verifiable
+                # if we don't mock this then it tries to remove the file copied by Copy-Item which of course didn't
+                # happen because we mocked it to do nothing!
+                Mock -CommandName Remove-Item {} -Verifiable
 
                 Set-Content -Path $todoTaskPath -Value "abcdefg"
                 { Export-TWTodo -Todo $todo } | Should -Not -Throw
+                Assert-MockCalled -CommandName Get-TWConfiguration -Exactly 1 -Scope It
+                Assert-MockCalled -CommandName Get-TWBackupPath -Exactly 1 -Scope It
                 Assert-MockCalled -CommandName New-Item -Exactly 1 -Scope It    # creating the backup folder
                 Assert-MockCalled -CommandName Copy-Item -Exactly 1 -Scope It   # copying the todo file to the backup file
+                Assert-MockCalled -CommandName Remove-Item -Exactly 1 -Scope It
             }
         }
 
-        Context 'testing BackupPath setting not being defined' {
+        Context 'testing AutoArchive being $true and BackupFolder not defined' {
 
             Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt
 
-            it 'should still create a backup file if no BackupPath is defined in the configuration' {
+            it 'should still create a backup file' {
                 $todoTaskPath = 'TestDrive:\todo.txt'
-                $formattedDate = Get-Date -Format 'yyyymmdd'
-                Mock -ModuleName PSTodoWarrior `
-                    -CommandName Get-TWConfiguration { @{ TodoDonePath = 'TestDrive:\done.txt'; TodoTaskPath = $todoTaskPath; } }
-                Mock -CommandName Remove-Item -Verifiable       # mock this so the backup file is not removed and we can check for it
+                $backupPath = 'TestDrive:\20200320-101010-todo.txt'
+                Mock -ModuleName PSTodoWarrior -CommandName Get-TWBackupPath {
+                    $backupPath
+                }
+                Mock -ModuleName PSTodoWarrior -CommandName Get-TWConfiguration {
+                    @{
+                        TodoDonePath = 'TestDrive:\done.txt'
+                        TodoTaskPath = $todoTaskPath
+                        AutoArchive = $true
+                    }
+                }
+                Mock -CommandName Remove-Item       # mock this so the backup file is not removed and we can check for it
+
                 Set-Content -Path $todoTaskPath -Value "abcdefg"        # the backup is only created if the todo file exists
 
                 { Export-TWTodo -Todo $todo } | Should -Not -Throw
+                Get-ChildItem -Path $backupPath | Should -HaveCount 1
+
+                Assert-MockCalled -CommandName Get-TWBackupPath -Exactly 1 -Scope It
+                Assert-MockCalled -CommandName Get-TWConfiguration -Exactly 1 -Scope It
                 Assert-MockCalled -CommandName Remove-Item -Exactly 1 -Scope It   # copying the todo file to the backup file
-                Get-ChildItem -Path "TestDrive:\$($formattedDate)-??????-todo.txt" | Should -HaveCount 1
             }
         }
 
-        Context 'testing BackupPath being set and the export failing' {
+        Context 'testing BackupFolder being set and the export failing' {
 
             $todoTaskPath = 'TestDrive:\todo.txt'
             $todoDonePath = 'TestDrive:\done.txt'
-            $formattedDate = Get-Date -Format 'yyyymmdd'
-            Mock -ModuleName PSTodoWarrior `
-                -CommandName Get-TWConfiguration { @{ TodoDonePath = $todoDonePath; TodoTaskPath = $todoTaskPath; } }
-
+            $backupPath = 'TestDrive:\20200320-020304-todo.txt'
+            Mock -ModuleName PSTodoWarrior -CommandName Get-TWBackupPath {
+                $backupPath
+            }
+            Mock -ModuleName PSTodoWarrior -CommandName Get-TWConfiguration {
+                @{
+                    TodoDonePath = $todoDonePath
+                    TodoTaskPath = $todoTaskPath
+                    AutoArchive = $true
+                    BackupFolder = '\'
+                }
+            }
             Mock -ModuleName PSTodoWarrior -CommandName Export-TodoTxt { throw }    # fail the export
+            Mock -ModuleName PSTodoWarrior -CommandName Remove-Item {}
 
             it 'should leave the backup file if the export fails' {
                 Set-Content -Path $todoTaskPath -Value "abcdefg"        # the backup is only created if the todo file exists
 
                 { Export-TWTodo -Todo $todo } | Should -Throw
-                Get-ChildItem -Path "TestDrive:\$($formattedDate)-??????-todo.txt" | Should -HaveCount 1
+                Get-ChildItem -Path $backupPath | Should -HaveCount 1
+
+                Assert-MockCalled -CommandName Get-TWBackupPath -Exactly 1 -Scope It
+                Assert-MockCalled -CommandName Get-TWConfiguration -Exactly 1 -Scope It
+                Assert-MockCalled -CommandName Remove-Item -Exactly 0 -Scope It
             }
         }
     }
