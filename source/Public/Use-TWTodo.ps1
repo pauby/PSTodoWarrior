@@ -53,6 +53,7 @@
     )
 
     # Import the settings
+    #! TODO: Change this to $config to match all of the other functions!
     $settings = Get-TWConfiguration
 
     # import the todos
@@ -156,7 +157,24 @@
             }
         }
 
-        $output
+        # If we have an alternating line colour then show it
+        if ($settings.ShowAlternatingColour) {
+            $OriginalForegroundColor = $Host.UI.RawUI.ForegroundColor
+            $output | ForEach-Object {
+                # colour every 2nd line
+                if ($_.ID %2 -eq 0) {
+                    $Host.UI.RawUI.ForegroundColor = $settings.ShowAlternatingColour
+                    $_
+                    $Host.UI.RawUI.ForegroundColor = $OriginalForegroundColor
+                }
+                else {
+                    $_
+                }
+            }
+        }
+        else {
+            $output
+        }
         Write-TWStats -Output $output -Prefix "`n"
     }
 }
