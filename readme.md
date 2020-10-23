@@ -19,9 +19,13 @@ $TWSettings = [pscustomobject]@{
     # name text of the Project property of the todo - usually 'Project' or 'Tag'
     NameProject         = 'Tag'
 
+    # Addons
+    # addons to hide from output (note they are only hidden, not removed from the object)
+    HideAddons          = @( 'uuid' )
+
     # Archives
     # if $true automatically archives completed todos to the TodoDoneFile, if $false they remain in the TodoTaskFile
-    AutoArchive         = $true # not implemented yet - DO NOT USE
+    AutoArchive         = $true
 
     # Backups
     # backups are stored in the same folder as the TodoTaskFile
@@ -40,11 +44,9 @@ $TWSettings = [pscustomobject]@{
     }
 
     # Colour for information messages
-    InfoMsgsColour         = 'DarkCyan'
-
-    # Set this to $true if you don't want information messages shown (the messages use Write-Host to display so if you
-    # are working with todo objects those messages will pollute the output).
-    DisableWriteHostUse    = $false
+    ShowAlternatingColour   = 'DarkMagenta'
+    InfoMsgsColour          = 'DarkCyan'
+    DisableWriteHostUse     = $false
 
     # Weights
     # TODO: These needs explained
@@ -66,7 +68,6 @@ $TWSettings = [pscustomobject]@{
 #            'default' = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { foreach ($todo in $todos) { if (($todo.Project -contains $config['ProjectDefault']) -or ($todo.Priority) -or ($todo.Project -contains $config['ProjectNextAction'])) { $output += $todo } } } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property @{e="Weight"; Descending=$true}, @{e="Line"; Descending=$False} | Select-Object -First $config['TodoLimit'] } };
 #        default = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { foreach ($todo in $todos) { if (($todo.Context.Count -gt 0) -and ([string]::IsNullOrWhiteSpace($todo.DoneDate))) { $output += $todo } } } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property @{e="Weight"; Descending=$true}, @{e="Line"; Descending=$False} | Select-Object -First $config['TodoLimit'] } }
         all         = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { foreach ($todo in $todos) { $output += $todo } } end { $output | sort Weight -Descending } }
-#        inbox   = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { foreach ($todo in $todos) { if ($todo.Context.Count -eq 0) { $output += $todo } } } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property Weight -Descending } }
         inbox       = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { $output += $todos | where context -contains 'inbox' } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property Weight -Descending } }
         wait        = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { $output += $todos | where project -contains 'waiting' } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property Weight -Descending } }
         today       = { param([Parameter(ValueFromPipeline=$true)][object[]]$todos, [hashtable]$config); begin { $output = @() } process { $output += $todos | where { $_.project -contains 'today' -or ($_.addon.keys -contains 'due' -and $_.addon.due -le (Get-Date -Format 'yyyy-MM-dd')) } } end { $output | where { [string]::IsNullOrWhitespace($_.DoneDate) } | Sort-Object -Property Weight -Descending } }
@@ -76,13 +77,13 @@ $TWSettings = [pscustomobject]@{
 }
 ```
 
-## TODO
-
-- [ ] Add ability to view tasks
-
 # References
 
-* The [Todo.txt Format](https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format)
+Really useful overview on what the `todo.txt` format is (taken from [todo.txt format](https://github.com/todotxt/todo.txt)):
+
+![](https://raw.githubusercontent.com/todotxt/todo.txt/master/description.png)
+
+* The [Todo.txt Format](https://github.com/todotxt/todo.txt)
 * [SimpleTask](https://github.com/mpcjanssen/simpletask-android/blob/master/src/main/assets/listsandtags.en.md) - took the idea for some of the addons from here (recurring tasks, hidden tasks etc.)
 * {Simpletask LIsts and Tags] (https://github.com/mpcjanssen/simpletask-android/blob/master/src/main/assets/listsandtags.en.md)
 * [How to GTD with SimpleTask](https://gist.github.com/alehandrof/9941620)
