@@ -44,6 +44,18 @@
         $id = @($TodoList).count + 1
         $obj | Add-Member -MemberType NoteProperty -Name 'ID' -Value $id
 
+        # add the UUID to the object
+        if ($obj.addon.keys -notcontains 'uuid') {
+            $guid = ([GUID]::NewGuid()).ToString()
+
+            # if the addons hashtable doesn't exist, then create it
+            if ($obj.PSObject.Properties.name -notcontains 'addon') {
+                $obj | Add-Member -MemberType NoteProperty -Name 'addon' -Value @{ 'uuid' = $guid }
+            } else {
+                $obj.addon += @{ 'uuid' = $guid }
+            }
+        }
+
         # add the new TWTodo object to the todo list and export the todos
         $null = $TodoList.Add($obj)
 
